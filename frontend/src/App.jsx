@@ -1,9 +1,22 @@
 import React from "react";
-import ThemeToggle from "./components/ThemeToggle";
-import IstanbulMap from "./components/IstanbulMap";
+import Navbar from "./components/Navbar";
+import HomePage from "./pages/HomePage";
+import NotFoundPage from "./pages/NotFoundPage";
+
+import { Routes, Route } from "react-router-dom";
+import ApplyPage from "./pages/ApplyPage";
 
 const App = () => {
-  return <div className="text-3xl font-bold underline">App</div>;
+  return (
+    <div className="bg-gray-200">
+      <Navbar />
+      <Routes>
+        <Route path="/" element={<HomePage />} />
+        <Route path="/apply" element={<ApplyPage />} />
+        <Route path="*" element={<NotFoundPage/>} /> {/* 404 */}
+      </Routes>
+    </div>
+  );
 };
 
 export default App;
