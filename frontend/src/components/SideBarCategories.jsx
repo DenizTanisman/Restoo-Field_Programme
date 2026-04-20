@@ -36,7 +36,7 @@ const SideBarCategories = ({ onCategorySelect }) => {
         Kategoriler
       </h2>
       <ul className="flex flex-col gap-1">
-        {categories.map((cat) => (
+        {[...categories].sort((a, b) => a.label.localeCompare(b.label, "tr")).map((cat) => (
           <li key={cat.id}>
             <button
               onClick={() => handleSelect(cat)}
