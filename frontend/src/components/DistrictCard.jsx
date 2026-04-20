@@ -100,25 +100,57 @@ function computeViewBox(d, padding = 8) {
   return `${x} ${y} ${w} ${h}`;
 }
 
-export default function DistrictCard({ selectedInfo, selectedPath, onClose }) {
+function PlatformColumn({ title, platforms }) {
+  return (
+    <div className="flex-1 min-w-0">
+      <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3 truncate">
+        {title}
+      </p>
+      <div className="flex flex-col gap-3">
+        {platforms.map((platform, i) => (
+          <div key={platform.name} className="flex items-center gap-3">
+            {PLATFORM_ICONS[i]}
+            <div>
+              <span className="text-xl font-bold block leading-none">{platform.customers}</span>
+              <span className="text-xs text-gray-500">Aktif Müşteri</span>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+export default function DistrictCard({ selectedInfo, selectedPath, selectedCategory, selectedNeighborhood, neighborhoodInfo }) {
   if (!selectedInfo) return null;
 
   const viewBox = selectedPath ? computeViewBox(selectedPath.d) : "0 0 100 100";
+  const categoryLabel = selectedCategory?.label ?? null;
+
+  const districtTitle = categoryLabel
+    ? `${selectedInfo.name} · ${categoryLabel}`
+    : `${selectedInfo.name} · Tüm Kategoriler`;
+
+  const neighborhoodTitle = selectedNeighborhood
+    ? categoryLabel
+      ? `${selectedNeighborhood} · ${categoryLabel}`
+      : `${selectedNeighborhood} · Tüm Kategoriler`
+    : null;
 
   return (
     <div className="card bg-white shadow-md animate-[fadeIn_0.25s_ease] mb-6 text-gray-900">
       <div className="card-body">
-        {/* İlçe adı + mini harita */}
-        <div className="flex items-center justify-center gap-8 mb-5">
+        {/* Üst: ilçe adı + mini harita */}
+        <div className="flex items-center justify-center gap-8 mb-6">
           <div className="text-center">
-            <h2 className="text-4xl font-semibold text-gray-900">
-              {selectedInfo.name}
-            </h2>
-            <p className="text-sm text-gray-500 mt-1">
-              {sideLabel(selectedInfo.side)}
-            </p>
+            <h2 className="text-4xl font-semibold text-gray-900">{selectedInfo.name}</h2>
+            <p className="text-sm text-gray-500 mt-1">{sideLabel(selectedInfo.side)}</p>
+            {categoryLabel && (
+              <span className="inline-block mt-2 text-xs bg-blue-100 text-blue-700 px-3 py-1 rounded-full font-semibold">
+                {categoryLabel}
+              </span>
+            )}
           </div>
-
           {selectedPath && (
             <svg
               viewBox={viewBox}
@@ -137,17 +169,29 @@ export default function DistrictCard({ selectedInfo, selectedPath, onClose }) {
           )}
         </div>
 
-        {/* Platform satırları */}
-        <div className="flex flex-col gap-3">
-          {selectedInfo.platforms.map((platform, i) => (
-            <div key={platform.name} className="flex items-center gap-4">
-              {PLATFORM_ICONS[i]}
-              <span className="text-2xl font-bold min-w-12">
-                {platform.customers}
-              </span>
-              <span className="text-sm text-gray-600">Aktif Müşteri</span>
-            </div>
-          ))}
+        {/* Platform kolonları: ilçe + mahalle yan yana */}
+        <div className="flex gap-6 divide-x divide-gray-100">
+          <PlatformColumn title={districtTitle} platforms={selectedInfo.platforms} />
+          <div className="pl-6 flex-1 min-w-0">
+            {selectedNeighborhood && neighborhoodInfo ? (
+              <PlatformColumn title={neighborhoodTitle} platforms={neighborhoodInfo.platforms} />
+            ) : (
+              <div className="flex flex-col gap-3">
+                <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">
+                  Mahalle Seçilmedi
+                </p>
+                {selectedInfo.platforms.map((_, i) => (
+                  <div key={i} className="flex items-center gap-3 opacity-30">
+                    {PLATFORM_ICONS[i]}
+                    <div>
+                      <span className="text-xl font-bold block leading-none">—</span>
+                      <span className="text-xs text-gray-500">Aktif Müşteri</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </div>

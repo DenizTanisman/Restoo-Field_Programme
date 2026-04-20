@@ -196,6 +196,9 @@ export default function HomePage() {
         <DistrictCard
           selectedInfo={selectedInfo}
           selectedPath={selectedPath}
+          selectedCategory={selectedCategory}
+          selectedNeighborhood={selectedNeighborhood}
+          neighborhoodInfo={neighborhoodInfo}
           className="mt-8"
         />
         <RestaurantCard restaurants={restourant} />
