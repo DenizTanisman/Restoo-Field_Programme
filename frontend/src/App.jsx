@@ -2,18 +2,22 @@ import React from "react";
 import Navbar from "./components/Navbar";
 import HomePage from "./pages/HomePage";
 import NotFoundPage from "./pages/NotFoundPage";
-
 import { Routes, Route } from "react-router-dom";
 import ApplyPage from "./pages/ApplyPage";
+import Kiyaslama from "./components/Kiyaslama"; // Senin modülün
 
 const App = () => {
   return (
     <div className="bg-gray-200">
       <Navbar />
+      
+      {/* Senin modülün tüm sayfalarda en üstte görünsün istersen buraya: */}
+      <Kiyaslama />
+
       <Routes>
         <Route path="/" element={<HomePage />} />
         <Route path="/apply" element={<ApplyPage />} />
-        <Route path="*" element={<NotFoundPage/>} /> {/* 404 */}
+        <Route path="*" element={<NotFoundPage />} />
       </Routes>
     </div>
   );
