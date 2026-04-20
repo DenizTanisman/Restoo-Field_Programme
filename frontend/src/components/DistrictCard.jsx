@@ -1,4 +1,3 @@
-// components/DistrictCard.jsx
 import React from "react";
 
 const sideLabel = (side) => {
@@ -107,7 +106,7 @@ export default function DistrictCard({ selectedInfo, selectedPath, onClose }) {
   const viewBox = selectedPath ? computeViewBox(selectedPath.d) : "0 0 100 100";
 
   return (
-    <div className="card bg-gray-300 shadow-md animate-[fadeIn_0.25s_ease] mb-6 text-gray-900">
+    <div className="card bg-white shadow-md animate-[fadeIn_0.25s_ease] mb-6 text-gray-900">
       <div className="card-body">
         {/* İlçe adı + mini harita */}
         <div className="flex items-center justify-center gap-8 mb-5">

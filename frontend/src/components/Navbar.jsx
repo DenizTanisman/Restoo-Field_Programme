@@ -1,5 +1,6 @@
 import React from "react";
 import { Link } from "react-router-dom";
+import ApplyPage from "../pages/ApplyPage";
 
 const Navbar = () => {
   return (
@@ -39,6 +40,9 @@ const Navbar = () => {
             <li>
               <Link>Detaylı Analiz</Link>
             </li>
+            <li>
+              <Link to="/apply">Başvuru</Link>
+            </li>
           </ul>
         </div>
         <Link className="ml-3 text-3xl font-bold font-mono" to={"/"}>
@@ -58,6 +62,9 @@ const Navbar = () => {
           </li>
           <li>
             <Link>Detaylı Analiz</Link>
+          </li>
+          <li>
+            <Link to="/apply">Başvuru</Link>
           </li>
         </ul>
       </div>
