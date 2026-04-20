@@ -1,17 +1,24 @@
 import React from "react";
-import ThemeToggle from "./components/ThemeToggle";
-import IstanbulMap from "./components/IstanbulMap";
-import Kiyaslama from './components/Kiyaslama'; // Senin modülün
+import Navbar from "./components/Navbar";
+import HomePage from "./pages/HomePage";
+import NotFoundPage from "./pages/NotFoundPage";
+import { Routes, Route } from "react-router-dom";
+import ApplyPage from "./pages/ApplyPage";
+import Kiyaslama from "./components/Kiyaslama"; // Senin modülün
 
 const App = () => {
   return (
-    <div>
-      <ThemeToggle />
+    <div className="bg-gray-200">
+      <Navbar />
       
-      {/* Senin modülün buraya eklendi */}
+      {/* Senin modülün tüm sayfalarda en üstte görünsün istersen buraya: */}
       <Kiyaslama />
 
-      <IstanbulMap />
+      <Routes>
+        <Route path="/" element={<HomePage />} />
+        <Route path="/apply" element={<ApplyPage />} />
+        <Route path="*" element={<NotFoundPage />} />
+      </Routes>
     </div>
   );
 };
