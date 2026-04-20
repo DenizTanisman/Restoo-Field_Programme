@@ -1,7 +1,9 @@
-import React from 'react';
+import React, { useState } from 'react';
 import './Kiyaslama.css'; 
 
 export default function Kiyaslama() {
+  const [seciliIlce, setSeciliIlce] = useState("Avcılar");
+
   return (
     <div className="kiyaslama-wrapper">
       
@@ -9,11 +11,53 @@ export default function Kiyaslama() {
       <header className="kiyaslama-header">
         <div className="header-sol">
           <h1>Restoran Kıyaslama Paneli</h1>
-          <p>Avcılar İlçesi - Detaylı Performans Analizi</p>
+          <p>{seciliIlce} İlçesi - Detaylı Performans Analizi</p>
         </div>
         <div className="header-sag">
-          <div className="badge">📍 Avcılar, İstanbul</div>
-          <div className="badge">📅 27 Mart 2026</div>
+          
+          {/* DİNAMİK İLÇE SEÇİCİ (DROPDOWN) */}
+          <select className="ilce-secici" value={seciliIlce} onChange={(e) => setSeciliIlce(e.target.value)}>
+            <option value="Adalar">📍 Adalar, İstanbul</option>
+            <option value="Arnavutköy">📍 Arnavutköy, İstanbul</option>
+            <option value="Ataşehir">📍 Ataşehir, İstanbul</option>
+            <option value="Avcılar">📍 Avcılar, İstanbul</option>
+            <option value="Bağcılar">📍 Bağcılar, İstanbul</option>
+            <option value="Bahçelievler">📍 Bahçelievler, İstanbul</option>
+            <option value="Bakırköy">📍 Bakırköy, İstanbul</option>
+            <option value="Başakşehir">📍 Başakşehir, İstanbul</option>
+            <option value="Bayrampaşa">📍 Bayrampaşa, İstanbul</option>
+            <option value="Beşiktaş">📍 Beşiktaş, İstanbul</option>
+            <option value="Beykoz">📍 Beykoz, İstanbul</option>
+            <option value="Beylikdüzü">📍 Beylikdüzü, İstanbul</option>
+            <option value="Beyoğlu">📍 Beyoğlu, İstanbul</option>
+            <option value="Büyükçekmece">📍 Büyükçekmece, İstanbul</option>
+            <option value="Çatalca">📍 Çatalca, İstanbul</option>
+            <option value="Çekmeköy">📍 Çekmeköy, İstanbul</option>
+            <option value="Esenler">📍 Esenler, İstanbul</option>
+            <option value="Esenyurt">📍 Esenyurt, İstanbul</option>
+            <option value="Eyüpsultan">📍 Eyüpsultan, İstanbul</option>
+            <option value="Fatih">📍 Fatih, İstanbul</option>
+            <option value="Gaziosmanpaşa">📍 Gaziosmanpaşa, İstanbul</option>
+            <option value="Güngören">📍 Güngören, İstanbul</option>
+            <option value="Kadıköy">📍 Kadıköy, İstanbul</option>
+            <option value="Kağıthane">📍 Kağıthane, İstanbul</option>
+            <option value="Kartal">📍 Kartal, İstanbul</option>
+            <option value="Küçükçekmece">📍 Küçükçekmece, İstanbul</option>
+            <option value="Maltepe">📍 Maltepe, İstanbul</option>
+            <option value="Pendik">📍 Pendik, İstanbul</option>
+            <option value="Sancaktepe">📍 Sancaktepe, İstanbul</option>
+            <option value="Sarıyer">📍 Sarıyer, İstanbul</option>
+            <option value="Silivri">📍 Silivri, İstanbul</option>
+            <option value="Sultanbeyli">📍 Sultanbeyli, İstanbul</option>
+            <option value="Sultangazi">📍 Sultangazi, İstanbul</option>
+            <option value="Şile">📍 Şile, İstanbul</option>
+            <option value="Şişli">📍 Şişli, İstanbul</option>
+            <option value="Tuzla">📍 Tuzla, İstanbul</option>
+            <option value="Ümraniye">📍 Ümraniye, İstanbul</option>
+            <option value="Üsküdar">📍 Üsküdar, İstanbul</option>
+            <option value="Zeytinburnu">📍 Zeytinburnu, İstanbul</option>
+          </select>
+
         </div>
       </header>
 
@@ -44,7 +88,7 @@ export default function Kiyaslama() {
           </div>
         </div>
 
-        {/* 3. BÖLÜM: DETAY VE KIYASLAMA KARTLARI (2x2 Grid) */}
+        {/* 3. BÖLÜM: DETAY VE KIYASLAMA KARTLARI */}
         <div className="detay-kartlari-izgarasi">
           <div className="detay-kart">
             <div className="kart-baslik">
@@ -68,7 +112,7 @@ export default function Kiyaslama() {
               📉
               <div>
                 <h3>Minimum Menü Fiyatı</h3>
-                <p>Avcılar ilçesi restoranları ile kıyaslama</p>
+                <p>{seciliIlce} ilçesi restoranları ile kıyaslama</p>
               </div>
             </div>
             <div className="bar-alani">
@@ -194,7 +238,7 @@ export default function Kiyaslama() {
               <div className="kupon-satir">
                 <span className="kupon-etiket">İndirim Oranı</span>
                 <div className="progress-bar-container">
-                  <div className="progress-bar kirmizi-bar" style={{ width: '45%' }}>İlçe Ortalaması: %45</div>
+                  <div className="progress-bar kirmizi-bar" style={{ width: '15%' }}>İlçe Ortalaması: %45</div>
                 </div>
               </div>
               <div className="kupon-satir">
@@ -213,7 +257,7 @@ export default function Kiyaslama() {
           </div>
         </div>
 
-        {/* 6. BÖLÜM: İŞ MODELİ STRATEJİSİ (YENİ EKLENEN FİNAL BÖLÜMÜ) */}
+        {/* 6. BÖLÜM: İŞ MODELİ STRATEJİSİ */}
         <div className="detay-kart tam-genislik is-modeli-container">
           <div className="kart-baslik">
             🎯
@@ -224,49 +268,27 @@ export default function Kiyaslama() {
           </div>
 
           <div className="is-modeli-kutu-grubu">
-            
-            {/* Rakip Modeli Kutusu (Kırmızı) */}
             <div className="is-modeli-kutu rakip-model">
               <div className="model-baslik kirmizi-nokta">RAKİP MODELİ</div>
               <h4>Kurye Ücreti Müşteriye Yansıtılıyor</h4>
               <p>Kurye maliyeti müşteriye yansıtıyor. Bu durum güvenli bir liman gibi görünse de, müşteride vazgeçme eğilimi yaratıyor ve ciroyu sınırlı tutuyor.</p>
               <div className="istatistik-grubu">
-                <div className="istatistik-kutu">
-                  <span>KURYE ÜCRETİ</span>
-                  <h2>20 ₺</h2>
-                </div>
-                <div className="istatistik-kutu">
-                  <span>Aylık Ciro</span>
-                  <h2>5000 ₺</h2>
-                </div>
-                <div className="istatistik-kutu">
-                  <span>VAZGEÇME</span>
-                  <h2>YÜKSEK</h2>
-                </div>
+                <div className="istatistik-kutu"><span>KURYE ÜCRETİ</span><h2>20 ₺</h2></div>
+                <div className="istatistik-kutu"><span>Aylık Ciro</span><h2>5000 ₺</h2></div>
+                <div className="istatistik-kutu"><span>VAZGEÇME</span><h2>YÜKSEK</h2></div>
               </div>
             </div>
 
-            {/* Senin Modelin Kutusu (Yeşil) */}
             <div className="is-modeli-kutu senin-model">
               <div className="model-baslik yesil-nokta">SENİN MODELİN</div>
               <h4>Kurye Ücreti Ücretsiz</h4>
               <p>Kurye maliyetini şirket olarak sen karşılıyorsun. Kâr marjı düşse de, satış hacmi 2 katına çıkarak toplam ciroda büyük artış sağlıyor.</p>
               <div className="istatistik-grubu">
-                <div className="istatistik-kutu">
-                  <span>KURYE ÜCRETİ</span>
-                  <h2>0 ₺</h2>
-                </div>
-                <div className="istatistik-kutu">
-                  <span>AYLIK CİRO</span>
-                  <h2>1M ₺</h2>
-                </div>
-                <div className="istatistik-kutu">
-                  <span>VAZGEÇME</span>
-                  <h2>DÜŞÜK</h2>
-                </div>
+                <div className="istatistik-kutu"><span>KURYE ÜCRETİ</span><h2>0 ₺</h2></div>
+                <div className="istatistik-kutu"><span>AYLIK CİRO</span><h2>1M ₺</h2></div>
+                <div className="istatistik-kutu"><span>VAZGEÇME</span><h2>DÜŞÜK</h2></div>
               </div>
             </div>
-
           </div>
         </div>
 
