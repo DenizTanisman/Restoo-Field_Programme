@@ -10,13 +10,11 @@ const App = () => {
   return (
     <div className="bg-gray-200">
       <Navbar />
-      
-      {/* Senin modülün tüm sayfalarda en üstte görünsün istersen buraya: */}
-      <Kiyaslama />
 
       <Routes>
         <Route path="/" element={<HomePage />} />
         <Route path="/apply" element={<ApplyPage />} />
+        <Route path="/kıyaslama" element={<Kiyaslama />} />
         <Route path="*" element={<NotFoundPage />} />
       </Routes>
     </div>
