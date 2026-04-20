@@ -12,6 +12,8 @@ import { restourants } from "../data/mock/restourantData";
 import RestaurantCard from "../components/RestourantCard";
 import SideBarDistricts from "../components/SideBarDistricts";
 import SideBarCategories from "../components/SideBarCategories";
+import Kiyaslama from "../components/Kiyaslama";
+import RestaurantCaseStudy from "../components/RestaurantCaseStudy";
 
 // Kategori seçilince seed üretir, aynı isim+kategori çifti hep aynı sayıyı verir
 function seededRand(seed, min, max) {
@@ -172,7 +174,9 @@ export default function HomePage() {
   const selectedPath = districts.find((d) => d.id === selectedDistrict);
 
   return (
-    <div className="flex min-h-screen font-sans">
+    
+    <div className="font-sans">
+      <section className="min-h-screen flex mb-15">
       <SideBarDistricts
         setDistrict={({ id, name, side }) =>
           handleDistrictClick(id, name, side)
@@ -225,6 +229,15 @@ export default function HomePage() {
         )}
       </div>
       <SideBarCategories onCategorySelect={handleCategorySelect} />
-    </div>
+      </section>
+
+  <section className="min-h-screen mb-15">
+      <Kiyaslama />
+  </section>
+
+  <section className="min-h-screen mb-15">
+      <RestaurantCaseStudy />
+  </section>
+</div>
   );
 }

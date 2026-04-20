@@ -1,6 +1,7 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import ApplyPage from "../pages/ApplyPage";
+import Kiyaslama from "./Kiyaslama";
 
 const Navbar = () => {
   return (
@@ -26,13 +27,13 @@ const Navbar = () => {
           </div>
           <ul
             tabIndex="-1"
-            className="menu menu-sm dropdown-content bg-base-100 rounded-box z-1 mt-3 w-52 p-2 shadow"
+            className="menu menu-sm dropdown-content bg-base-100 rounded-box z-1 mt-3 w-52 p-2 shadow text-gray-950"
           >
             <li>
               <Link>Yorum Analiz</Link>
             </li>
             <li>
-              <Link>Rakip Dükkanlar</Link>
+              <Link to="/kiyaslama">Rakip Dükkanlar</Link>
             </li>
             <li>
               <Link>Sadakat</Link>
@@ -55,7 +56,7 @@ const Navbar = () => {
             <Link>Yorum Analiz</Link>
           </li>
           <li>
-            <Link>Rakip Dükkanlar</Link>
+            <Link to={Kiyaslama}>Rakip Dükkanlar</Link>
           </li>
           <li>
             <Link>Sadakat</Link>
