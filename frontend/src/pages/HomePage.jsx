@@ -14,6 +14,8 @@ import SideBarDistricts from "../components/SideBarDistricts";
 import SideBarCategories from "../components/SideBarCategories";
 import Kiyaslama from "../components/Kiyaslama";
 import RestaurantCaseStudy from "../components/RestaurantCaseStudy";
+import LoyaltyPage from "../components/LoyaltyPage";
+import ComparisonDashboard from "../components/ComparisonDashboard";
 
 // Kategori seçilince seed üretir, aynı isim+kategori çifti hep aynı sayıyı verir
 function seededRand(seed, min, max) {
@@ -237,6 +239,14 @@ export default function HomePage() {
 
   <section className="min-h-screen mb-15">
       <RestaurantCaseStudy />
+  </section>
+
+<section className="min-h-screen mb-15">
+      <LoyaltyPage />
+  </section>
+
+<section className="min-h-screen mb-15">
+      <ComparisonDashboard />
   </section>
 </div>
   );
