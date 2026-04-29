@@ -16,6 +16,7 @@ import Kiyaslama from "../components/Kiyaslama";
 import RestaurantCaseStudy from "../components/RestaurantCaseStudy";
 import LoyaltyPage from "../components/LoyaltyPage";
 import ComparisonDashboard from "../components/ComparisonDashboard";
+import RestaurantOperationalCard from "../components/RestaurantOperationalCard";
 
 // Kategori seçilince seed üretir, aynı isim+kategori çifti hep aynı sayıyı verir
 function seededRand(seed, min, max) {
@@ -36,49 +37,37 @@ const getMockData = (districtName, categoryLabel = "") => {
   const scale = categoryLabel ? 0.4 : 1;
   const r = (i, min, max) => Math.floor(seededRand(base + i, min, max) * scale + min * (1 - scale));
 
-  return {
-platforms: [
+return {
+    platforms: [
   { name: "Trendyol Go", customers: r(1, 200, 800), restaurants: r(21, 20, 150) },
   { name: "Getir", customers: r(2, 200, 800), restaurants: r(22, 20, 150) },
   { name: "Yemeksepeti", customers: r(3, 200, 800), restaurants: r(23, 20, 150) },
 ],
     budget: {
-      adBudget:     r(4, 2000, 10000),
+      adBudget: r(4, 2000, 10000),
       campaignRate: r(5, 30, 80),
-      couponRate:   r(6, 20, 60),
-      flashRate:    r(7, 15, 50),
-      jokerRate:    r(8, 10, 35),
+      couponRate: r(6, 20, 60),
+      flashRate: r(7, 15, 50),
+      jokerRate: r(8, 10, 35),
     },
     forecast: {
       daily: [
-        { platform: "Trendyol Go",  amount: r(9,  1000, 6000) },
-        { platform: "Getir",        amount: r(10, 1000, 6000) },
-        { platform: "Yemeksepeti",  amount: r(11, 1000, 6000) },
+        { platform: "Trendyol Go", amount: r(9, 1000, 6000) },
+        { platform: "Getir", amount: r(10, 1000, 6000) },
+        { platform: "Yemeksepeti", amount: r(11, 1000, 6000) },
       ],
       monthly: [
-        { platform: "Trendyol Go",  amount: r(12, 30000, 180000) },
-        { platform: "Getir",        amount: r(13, 30000, 180000) },
-        { platform: "Yemeksepeti",  amount: r(14, 30000, 180000) },
+        { platform: "Trendyol Go", amount: r(12, 30000, 180000) },
+        { platform: "Getir", amount: r(13, 30000, 180000) },
+        { platform: "Yemeksepeti", amount: r(14, 30000, 180000) },
       ],
       yearly: [
-        { platform: "Trendyol Go",  amount: r(15, 500000, 2500000) },
-        { platform: "Getir",        amount: r(16, 500000, 2500000) },
-        { platform: "Yemeksepeti",  amount: r(17, 500000, 2500000) },
+        { platform: "Trendyol Go", amount: r(15, 500000, 2500000) },
+        { platform: "Getir", amount: r(16, 500000, 2500000) },
+        { platform: "Yemeksepeti", amount: r(17, 500000, 2500000) },
       ],
     },
   };
-};
-
-const sideLabel = (side) => {
-  if (side === "avrupa") return "Avrupa Yakası";
-  if (side === "anadolu") return "Anadolu Yakası";
-  return "Adalar";
-};
-
-const sideFill = (side) => {
-  if (side === "avrupa") return "#34699A";
-  if (side === "anadolu") return "#59AC77";
-  return "#F2C078";
 };
 
 export default function HomePage() {
@@ -179,18 +168,16 @@ export default function HomePage() {
     
     <div className="font-sans">
       <section className="min-h-screen flex mb-15">
-      <SideBarDistricts
-        setDistrict={({ id, name, side }) =>
-          handleDistrictClick(id, name, side)
-        }
-      />
+        <SideBarDistricts
+          setDistrict={({ id, name, side }) =>
+            handleDistrictClick(id, name, side)
+          }
+        />
 
-      {/* İçerik */}
-      <div className="flex-1 px-6 py-4">
-        {/* Search Bar */}
-        <div>
-          <SearchBar onSearch={handleSearch} value={searchQuery} onChange={setSearchQuery} className="w-full" />
-        </div>
+        <div className="flex-1 px-6 py-4">
+          <div>
+            <SearchBar onSearch={handleSearch} value={searchQuery} onChange={setSearchQuery} className="w-full" />
+          </div>
 
         {/* Harita */}
         <div className="w-full mt-1 max-w-7xl mx-auto">
@@ -228,6 +215,10 @@ export default function HomePage() {
               districtName={selectedInfo.name}
               onSelect={handleNeighborhoodSelect}
             />
+
+            {/* O iki boşluğu dolduran operasyonel kartlar burada: */}
+            <RestaurantOperationalCard type="cancel" />
+              <RestaurantOperationalCard type="return" />
           </div>
         )}
       </div>
