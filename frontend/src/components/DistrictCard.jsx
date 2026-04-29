@@ -100,57 +100,30 @@ function computeViewBox(d, padding = 8) {
   return `${x} ${y} ${w} ${h}`;
 }
 
-function PlatformColumn({ title, platforms }) {
-  return (
-    <div className="flex-1 min-w-0">
-      <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3 truncate">
-        {title}
-      </p>
-      <div className="flex flex-col gap-3">
-        {platforms.map((platform, i) => (
-          <div key={platform.name} className="flex items-center gap-3">
-            {PLATFORM_ICONS[i]}
-            <div>
-              <span className="text-xl font-bold block leading-none">{platform.customers}</span>
-              <span className="text-xs text-gray-500">Aktif Müşteri</span>
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-export default function DistrictCard({ selectedInfo, selectedPath, selectedCategory, selectedNeighborhood, neighborhoodInfo }) {
+export default function DistrictCard({
+  selectedInfo,
+  selectedPath,
+  onClose,
+  restaurants,
+}) {
   if (!selectedInfo) return null;
 
   const viewBox = selectedPath ? computeViewBox(selectedPath.d) : "0 0 100 100";
-  const categoryLabel = selectedCategory?.label ?? null;
-
-  const districtTitle = categoryLabel
-    ? `${selectedInfo.name} · ${categoryLabel}`
-    : `${selectedInfo.name} · Tüm Kategoriler`;
-
-  const neighborhoodTitle = selectedNeighborhood
-    ? categoryLabel
-      ? `${selectedNeighborhood} · ${categoryLabel}`
-      : `${selectedNeighborhood} · Tüm Kategoriler`
-    : null;
 
   return (
     <div className="card bg-white shadow-md animate-[fadeIn_0.25s_ease] mb-6 text-gray-900">
       <div className="card-body">
-        {/* Üst: ilçe adı + mini harita */}
-        <div className="flex items-center justify-center gap-8 mb-6">
+        {/* İlçe adı + mini harita */}
+        <div className="flex items-center justify-center gap-8 mb-5">
           <div className="text-center">
-            <h2 className="text-4xl font-semibold text-gray-900">{selectedInfo.name}</h2>
-            <p className="text-sm text-gray-500 mt-1">{sideLabel(selectedInfo.side)}</p>
-            {categoryLabel && (
-              <span className="inline-block mt-2 text-xs bg-blue-100 text-blue-700 px-3 py-1 rounded-full font-semibold">
-                {categoryLabel}
-              </span>
-            )}
+            <h2 className="text-4xl font-semibold text-gray-900">
+              {selectedInfo.name}
+            </h2>
+            <p className="text-sm text-gray-500 mt-1">
+              {sideLabel(selectedInfo.side)}
+            </p>
           </div>
+
           {selectedPath && (
             <svg
               viewBox={viewBox}
@@ -169,28 +142,39 @@ export default function DistrictCard({ selectedInfo, selectedPath, selectedCateg
           )}
         </div>
 
-        {/* Platform kolonları: ilçe + mahalle yan yana */}
-        <div className="flex gap-6 divide-x divide-gray-100">
-          <PlatformColumn title={districtTitle} platforms={selectedInfo.platforms} />
-          <div className="pl-6 flex-1 min-w-0">
-            {selectedNeighborhood && neighborhoodInfo ? (
-              <PlatformColumn title={neighborhoodTitle} platforms={neighborhoodInfo.platforms} />
-            ) : (
-              <div className="flex flex-col gap-3">
-                <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">
-                  Mahalle Seçilmedi
-                </p>
-                {selectedInfo.platforms.map((_, i) => (
-                  <div key={i} className="flex items-center gap-3 opacity-30">
-                    {PLATFORM_ICONS[i]}
-                    <div>
-                      <span className="text-xl font-bold block leading-none">—</span>
-                      <span className="text-xs text-gray-500">Aktif Müşteri</span>
-                    </div>
-                  </div>
-                ))}
+        {/* Platform satırları */}
+        <div className="flex flex-wrap gap-4 mt-6">
+          {selectedInfo.platforms.map((platform, i) => (
+            <div
+              key={platform.name}
+              className="bg-gray-50  rounded-xl p-4 
+              flex flex-col items-center justify-center text-center shadow-sm
+              w-full sm:w-[48%] md:w-[32%]"
+            >
+              <div className="flex items-center gap-2">
+                <div className="mb-2">{PLATFORM_ICONS[i]}</div>
+
+                <h3 className="text-lg font-semibold text-gray-700 mb-2">
+                  {platform.name}
+                </h3>
               </div>
-            )}
+
+              <div className="bg-blue-100 text-gray-700 text-sm px-4 py-1 rounded-md mb-4">
+                {platform.customers} Kullanıcı
+              </div>
+
+              <div className="bg-blue-100 text-gray-700 text-sm px-4 py-1 rounded-md">
+                {platform.restaurants} Restoran
+              </div>
+            </div>
+          ))}
+          <div className="w-full  border-gray-200 text-xs text-gray-600">
+            <span className="font-medium text-gray-800">
+              Kullanıcı/Restoran Oranı:
+            </span>
+            <span className="ml-1 text-gray-900 font-semibold">
+              144.7x
+            </span>
           </div>
         </div>
       </div>
