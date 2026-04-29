@@ -47,10 +47,10 @@ export default function Kiyaslama() {
         <div className="mb-8 grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-4">
           <div className="rounded-xl border-l-4 border-red-500 bg-white p-6 shadow-sm">
             <h4 className="text-xs font-semibold text-slate-500">
-              MİN. SEPET TUTARI
+              ORTALAMA SEPET TUTARI
             </h4>
             <h2 className="mt-2 text-3xl font-bold text-red-500">80 ₺</h2>
-            <p className="mt-1 text-sm text-slate-500">İlçe Ort: 120 ₺</p>
+            <p className="mt-1 text-sm text-slate-500">İlçe Ort: 80 ₺</p>
           </div>
 
           <div className="rounded-xl border-l-4 border-blue-500 bg-white p-6 shadow-sm">
@@ -58,20 +58,20 @@ export default function Kiyaslama() {
               ORTALAMA PUAN
             </h4>
             <h2 className="mt-2 text-3xl font-bold text-blue-500">4.5</h2>
-            <p className="mt-1 text-sm text-slate-500">İlçe Ort: 4.1</p>
+            <p className="mt-1 text-sm text-slate-500">İlçe Ort: 4.5</p>
           </div>
 
           <div className="rounded-xl border-l-4 border-green-500 bg-white p-6 shadow-sm">
-            <h4 className="text-xs font-semibold text-slate-500">AYLIK CİRO</h4>
+            <h4 className="text-xs font-semibold text-slate-500">ORTALAMA AYLIK CİRO</h4>
             <h2 className="mt-2 text-3xl font-bold text-green-500">1M ₺</h2>
-            <p className="mt-1 text-sm text-slate-500">Rakip Ort: 500K ₺</p>
+            <p className="mt-1 text-sm text-slate-500">Rakip Ort: 1M ₺</p>
           </div>
 
           <div className="rounded-xl border-l-4 border-yellow-500 bg-white p-6 shadow-sm">
             <h4 className="text-xs font-semibold text-slate-500">
-              KARGO ÜCRETİ
+              KURYE ÜCRETİ
             </h4>
-            <h2 className="mt-2 text-3xl font-bold text-yellow-500">0 ₺</h2>
+            <h2 className="mt-2 text-3xl font-bold text-yellow-500">20 ₺</h2>
             <p className="mt-1 text-sm text-slate-500">İlçe Ort: 20 ₺</p>
           </div>
         </div>
@@ -83,7 +83,7 @@ export default function Kiyaslama() {
               <span className="text-2xl">🛒</span>
               <div>
                 <h3 className="text-base font-semibold text-slate-900">
-                  Minimum Sepet Tutarı
+                  Ortalama Sepet Tutarı
                 </h3>
                 <p className="text-sm text-slate-400">
                   İlçedeki döner restoranları ile kıyaslama
@@ -418,113 +418,114 @@ export default function Kiyaslama() {
         </div>
 
         {/* İŞ MODELİ */}
-        <div className="mt-5 rounded-xl bg-white p-6 shadow-sm">
-          <div className="mb-6 flex items-start gap-4">
-            <span className="text-2xl">🎯</span>
-            <div>
-              <h3 className="text-base font-semibold text-slate-900">
-                İş Modeli Karşılaştırması: Kurye Stratejisi
-              </h3>
-              <p className="text-sm text-slate-400">
-                Kurye ücretini müşteriye yansıtma vs ücretsiz kurye modeli
-              </p>
-            </div>
-          </div>
+       <div className="mt-5 rounded-xl bg-white p-6 shadow-sm">
+  <div className="mb-6 flex items-start gap-4">
+    <span className="text-2xl">🎯</span>
+    <div>
+      <h3 className="text-base font-semibold text-slate-900">
+        İş Modeli Karşılaştırması: Kurye Stratejisi
+      </h3>
+      <p className="text-sm text-slate-400">
+        Restoranın kendi kuryesi vs Senin özel kurye modelin
+      </p>
+    </div>
+  </div>
 
-          <div className="flex flex-col gap-5 lg:flex-row">
-            <div className="flex-1 rounded-xl border-2 border-red-300 bg-red-50 p-6">
-              <div className="mb-3 flex items-center gap-2 text-sm font-extrabold uppercase tracking-wide text-red-500">
-                <span className="h-2.5 w-2.5 rounded-full bg-red-500"></span>
-                RAKİP MODELİ
-              </div>
+  <div className="flex flex-col gap-5 lg:flex-row">
+    {/* RESTORAN KURYESİ (ESKİ RAKİP MODELİ) */}
+    <div className="flex-1 rounded-xl border-2 border-red-300 bg-red-50 p-6">
+      <div className="mb-3 flex items-center gap-2 text-sm font-extrabold uppercase tracking-wide text-red-500">
+        <span className="h-2.5 w-2.5 rounded-full bg-red-500"></span>
+        RESTORAN KURYESİ
+      </div>
 
-              <h4 className="text-2xl font-bold text-red-600">
-                Kurye Ücreti Müşteriye Yansıtılıyor
-              </h4>
+      <h4 className="text-2xl font-bold text-red-600">
+        Kurye Ücreti Müşteriye Yansıtılıyor
+      </h4>
 
-              <p className="mt-3 text-sm leading-6 text-slate-500">
-                Kurye maliyeti müşteriye yansıtıyor. Bu durum güvenli bir liman
-                gibi görünse de, müşteride vazgeçme eğilimi yaratıyor ve ciroyu
-                sınırlı tutuyor.
-              </p>
+      <p className="mt-3 text-sm leading-6 text-slate-500">
+        Restoran kurye maliyetini doğrudan müşteriye yansıtıyor. Bu durum güvenli bir liman
+        gibi görünse de, ek ücretler müşteride vazgeçme eğilimi yaratıyor ve ciroyu
+        sınırlı tutuyor.
+      </p>
 
-              <div className="mt-5 grid grid-cols-1 gap-4 md:grid-cols-3">
-                <div className="rounded-lg bg-red-100 p-4 text-center">
-                  <span className="text-xs font-bold uppercase text-slate-500">
-                    KURYE ÜCRETİ
-                  </span>
-                  <h2 className="mt-2 text-3xl font-extrabold text-red-600">
-                    20 ₺
-                  </h2>
-                </div>
-
-                <div className="rounded-lg bg-red-100 p-4 text-center">
-                  <span className="text-xs font-bold uppercase text-slate-500">
-                    Aylık Ciro
-                  </span>
-                  <h2 className="mt-2 text-3xl font-extrabold text-red-600">
-                    5000 ₺
-                  </h2>
-                </div>
-
-                <div className="rounded-lg bg-red-100 p-4 text-center">
-                  <span className="text-xs font-bold uppercase text-slate-500">
-                    VAZGEÇME
-                  </span>
-                  <h2 className="mt-2 text-3xl font-extrabold text-red-600">
-                    YÜKSEK
-                  </h2>
-                </div>
-              </div>
-            </div>
-
-            <div className="flex-1 rounded-xl border-2 border-green-300 bg-green-50 p-6">
-              <div className="mb-3 flex items-center gap-2 text-sm font-extrabold uppercase tracking-wide text-green-600">
-                <span className="h-2.5 w-2.5 rounded-full bg-green-600"></span>
-                SENİN MODELİN
-              </div>
-
-              <h4 className="text-2xl font-bold text-green-600">
-                Kurye Ücreti Ücretsiz
-              </h4>
-
-              <p className="mt-3 text-sm leading-6 text-slate-500">
-                Kurye maliyetini şirket olarak sen karşılıyorsun. Kâr marjı
-                düşse de, satış hacmi 2 katına çıkarak toplam ciroda büyük artış
-                sağlıyor.
-              </p>
-
-              <div className="mt-5 grid grid-cols-1 gap-4 md:grid-cols-3">
-                <div className="rounded-lg bg-green-100 p-4 text-center">
-                  <span className="text-xs font-bold uppercase text-slate-500">
-                    KURYE ÜCRETİ
-                  </span>
-                  <h2 className="mt-2 text-3xl font-extrabold text-green-600">
-                    0 ₺
-                  </h2>
-                </div>
-
-                <div className="rounded-lg bg-green-100 p-4 text-center">
-                  <span className="text-xs font-bold uppercase text-slate-500">
-                    AYLIK CİRO
-                  </span>
-                  <h2 className="mt-2 text-3xl font-extrabold text-green-600">
-                    1M ₺
-                  </h2>
-                </div>
-
-                <div className="rounded-lg bg-green-100 p-4 text-center">
-                  <span className="text-xs font-bold uppercase text-slate-500">
-                    VAZGEÇME
-                  </span>
-                  <h2 className="mt-2 text-3xl font-extrabold text-green-600">
-                    DÜŞÜK
-                  </h2>
-                </div>
-              </div>
-            </div>
-          </div>
+      <div className="mt-5 grid grid-cols-1 gap-4 md:grid-cols-3">
+        <div className="rounded-lg bg-red-100 p-4 text-center border border-red-200">
+          <span className="text-xs font-bold uppercase text-slate-500">
+            KURYE ÜCRETİ
+          </span>
+          <h2 className="mt-2 text-3xl font-extrabold text-red-600">
+            20 ₺
+          </h2>
         </div>
+
+        <div className="rounded-lg bg-red-100 p-4 text-center border border-red-200">
+          <span className="text-xs font-bold uppercase text-slate-500">
+            Aylık Ciro
+          </span>
+          <h2 className="mt-2 text-3xl font-extrabold text-red-600">
+            5000 ₺
+          </h2>
+        </div>
+
+        <div className="rounded-lg bg-red-100 p-4 text-center border border-red-200">
+          <span className="text-xs font-bold uppercase text-slate-500">
+            VAZGEÇME
+          </span>
+          <h2 className="mt-2 text-3xl font-extrabold text-red-600">
+            YÜKSEK
+          </h2>
+        </div>
+      </div>
+    </div>
+
+    {/* SENİN KURYEN (ESKİ SENİN MODELİN) */}
+    <div className="flex-1 rounded-xl border-2 border-green-300 bg-green-50 p-6">
+      <div className="mb-3 flex items-center gap-2 text-sm font-extrabold uppercase tracking-wide text-green-600">
+        <span className="h-2.5 w-2.5 rounded-full bg-green-600"></span>
+        SENİN KURYEN
+      </div>
+
+      <h4 className="text-2xl font-bold text-green-600">
+        Kurye Ücreti Ücretsiz
+      </h4>
+
+      <p className="mt-3 text-sm leading-6 text-slate-500">
+        Kurye operasyonunu sen üstleniyorsun ve müşteriye ücretsiz sunuyorsun. Birim kâr
+        düşse de, "ücretsiz gönderim" algısı satış hacmini 2 katına çıkararak toplam ciroda rekor artış sağlıyor.
+      </p>
+
+      <div className="mt-5 grid grid-cols-1 gap-4 md:grid-cols-3">
+        <div className="rounded-lg bg-green-100 p-4 text-center border border-green-200">
+          <span className="text-xs font-bold uppercase text-slate-500">
+            KURYE ÜCRETİ
+          </span>
+          <h2 className="mt-2 text-3xl font-extrabold text-green-600">
+            0 ₺
+          </h2>
+        </div>
+
+        <div className="rounded-lg bg-green-100 p-4 text-center border border-green-200">
+          <span className="text-xs font-bold uppercase text-slate-500">
+            AYLIK CİRO
+          </span>
+          <h2 className="mt-2 text-3xl font-extrabold text-green-600">
+            1M ₺
+          </h2>
+        </div>
+
+        <div className="rounded-lg bg-green-100 p-4 text-center border border-green-200">
+          <span className="text-xs font-bold uppercase text-slate-500">
+            VAZGEÇME
+          </span>
+          <h2 className="mt-2 text-3xl font-extrabold text-green-600">
+            DÜŞÜK
+          </h2>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
       </main>
     </div>
   );

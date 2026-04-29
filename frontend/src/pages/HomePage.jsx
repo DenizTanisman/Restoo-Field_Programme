@@ -37,11 +37,11 @@ const getMockData = (districtName, categoryLabel = "") => {
   const r = (i, min, max) => Math.floor(seededRand(base + i, min, max) * scale + min * (1 - scale));
 
   return {
-    platforms: [
-      { name: "Trendyol Go",  customers: r(1, 50, 250) },
-      { name: "Getir",        customers: r(2, 50, 250) },
-      { name: "Yemeksepeti",  customers: r(3, 50, 250) },
-    ],
+platforms: [
+  { name: "Trendyol Go", customers: r(1, 200, 800), restaurants: r(21, 20, 150) },
+  { name: "Getir", customers: r(2, 200, 800), restaurants: r(22, 20, 150) },
+  { name: "Yemeksepeti", customers: r(3, 200, 800), restaurants: r(23, 20, 150) },
+],
     budget: {
       adBudget:     r(4, 2000, 10000),
       campaignRate: r(5, 30, 80),
@@ -202,10 +202,8 @@ export default function HomePage() {
         <DistrictCard
           selectedInfo={selectedInfo}
           selectedPath={selectedPath}
-          selectedCategory={selectedCategory}
-          selectedNeighborhood={selectedNeighborhood}
-          neighborhoodInfo={neighborhoodInfo}
           className="mt-8"
+          restaurants={restourant}
         />
         <RestaurantCard restaurants={restourant} />
         {selectedInfo && (
