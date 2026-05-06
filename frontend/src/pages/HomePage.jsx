@@ -17,6 +17,7 @@ import RestaurantCaseStudy from "../components/RestaurantCaseStudy";
 import LoyaltyPage from "../components/LoyaltyPage";
 import ComparisonDashboard from "../components/ComparisonDashboard";
 import RestaurantOperationalCard from "../components/RestaurantOperationalCard";
+import CommentAnalist from "../components/CommentAnalist";
 
 // Kategori seçilince seed üretir, aynı isim+kategori çifti hep aynı sayıyı verir
 function seededRand(seed, min, max) {
@@ -239,6 +240,10 @@ export default function HomePage() {
 
 <section className="min-h-screen mb-15">
       <ComparisonDashboard />
+  </section>
+
+  <section className="min-h-screen mb-15">
+    <CommentAnalist/>
   </section>
 </div>
   );
