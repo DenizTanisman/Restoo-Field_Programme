@@ -2,6 +2,7 @@ import { useState } from "react";
 
 
 
+
 const PLATFORMS = [
   { id: "Y", label: "Yemeksepeti",   bg: "bg-pink-500",   pct: 85 },
   { id: "G", label: "Getiryemek",    bg: "bg-purple-700", pct: 60 },
