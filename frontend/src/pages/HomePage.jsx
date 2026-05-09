@@ -245,6 +245,10 @@ export default function HomePage() {
   <section className="min-h-screen mb-15">
     <CommentAnalist/>
   </section>
+    <section className="min-h-screen mb-15">
+      <CommentAnalist />
+  </section>
+
 </div>
   );
 }
