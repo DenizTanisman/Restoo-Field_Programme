@@ -1,5 +1,4 @@
-// HomePage.jsx
-import React, { useState } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import IstanbulMap from "../components/IstanbulMap";
 import { districts } from "../data/mapData";
 import SearchBar from "../components/SearchBar";
@@ -8,7 +7,6 @@ import PlatformDonutCard from "../components/PlatformDonutCard";
 import BudgetAnalyticsCard from "../components/BudgetAnalyticsCard";
 import SalesForecastCard from "../components/SalesForecastCard";
 import NeighborhoodCard from "../components/NeighborhoodCard";
-import { restourants } from "../data/mock/restourantData";
 import RestaurantCard from "../components/RestourantCard";
 import SideBarDistricts from "../components/SideBarDistricts";
 import SideBarCategories from "../components/SideBarCategories";
@@ -18,70 +16,60 @@ import LoyaltyPage from "../components/LoyaltyPage";
 import ComparisonDashboard from "../components/ComparisonDashboard";
 import RestaurantOperationalCard from "../components/RestaurantOperationalCard";
 import CommentAnalist from "../components/CommentAnalist";
-
-// Kategori seçilince seed üretir, aynı isim+kategori çifti hep aynı sayıyı verir
-function seededRand(seed, min, max) {
-  const x = Math.sin(seed + 1) * 10000;
-  return Math.floor((x - Math.floor(x)) * (max - min + 1)) + min;
-}
-
-function hashStr(s) {
-  let h = 0;
-  for (let i = 0; i < s.length; i++) h = (Math.imul(31, h) + s.charCodeAt(i)) | 0;
-  return Math.abs(h);
-}
-
-// Platform mock data
-const getMockData = (districtName, categoryLabel = "") => {
-  const base = hashStr(districtName + categoryLabel);
-  // kategori varsa değerleri biraz ölçekle (simüle edilmiş filtre etkisi)
-  const scale = categoryLabel ? 0.4 : 1;
-  const r = (i, min, max) => Math.floor(seededRand(base + i, min, max) * scale + min * (1 - scale));
-
-return {
-    platforms: [
-  { name: "Trendyol Go", customers: r(1, 200, 800), restaurants: r(21, 20, 150) },
-  { name: "Getir", customers: r(2, 200, 800), restaurants: r(22, 20, 150) },
-  { name: "Yemeksepeti", customers: r(3, 200, 800), restaurants: r(23, 20, 150) },
-],
-    budget: {
-      adBudget: r(4, 2000, 10000),
-      campaignRate: r(5, 30, 80),
-      couponRate: r(6, 20, 60),
-      flashRate: r(7, 15, 50),
-      jokerRate: r(8, 10, 35),
-    },
-    forecast: {
-      daily: [
-        { platform: "Trendyol Go", amount: r(9, 1000, 6000) },
-        { platform: "Getir", amount: r(10, 1000, 6000) },
-        { platform: "Yemeksepeti", amount: r(11, 1000, 6000) },
-      ],
-      monthly: [
-        { platform: "Trendyol Go", amount: r(12, 30000, 180000) },
-        { platform: "Getir", amount: r(13, 30000, 180000) },
-        { platform: "Yemeksepeti", amount: r(14, 30000, 180000) },
-      ],
-      yearly: [
-        { platform: "Trendyol Go", amount: r(15, 500000, 2500000) },
-        { platform: "Getir", amount: r(16, 500000, 2500000) },
-        { platform: "Yemeksepeti", amount: r(17, 500000, 2500000) },
-      ],
-    },
-  };
-};
+import { api } from "../api/client";
 
 export default function HomePage() {
   const [selectedDistrict, setSelectedDistrict] = useState(null);
   const [selectedInfo, setSelectedInfo] = useState(null);
-  const [restourant, setRestourant] = useState(null);
+  const [restaurants, setRestaurants] = useState(null);
   const [selectedNeighborhood, setSelectedNeighborhood] = useState(null);
   const [neighborhoodInfo, setNeighborhoodInfo] = useState(null);
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
+  const [analyticsLoading, setAnalyticsLoading] = useState(false);
+  const [analyticsError, setAnalyticsError] = useState(null);
+  const [neighborhoodLoading, setNeighborhoodLoading] = useState(false);
+
+  const fetchDistrictAnalytics = useCallback(async (districtId, districtName, districtSide, categoryId) => {
+    setAnalyticsLoading(true);
+    setAnalyticsError(null);
+    try {
+      const data = await api.getDistrictAnalytics(districtId, categoryId);
+      setSelectedInfo({
+        id: districtId,
+        name: districtName,
+        side: districtSide,
+        platforms: data.platforms,
+        budget: data.budget,
+        forecast: data.forecast,
+      });
+    } catch (err) {
+      setAnalyticsError(err.message);
+      setSelectedInfo({ id: districtId, name: districtName, side: districtSide, platforms: [], budget: {}, forecast: {} });
+    } finally {
+      setAnalyticsLoading(false);
+    }
+  }, []);
+
+  const fetchNeighborhoodAnalytics = useCallback(async (neighborhoodId, neighborhoodName, categoryId) => {
+    setNeighborhoodLoading(true);
+    try {
+      const data = await api.getNeighborhoodAnalytics(neighborhoodId, categoryId);
+      setNeighborhoodInfo({
+        name: neighborhoodName,
+        platforms: data.platforms,
+        budget: data.budget,
+        forecast: data.forecast,
+      });
+    } catch {
+      setNeighborhoodInfo({ name: neighborhoodName, platforms: [], budget: {}, forecast: {} });
+    } finally {
+      setNeighborhoodLoading(false);
+    }
+  }, []);
 
   const handleDistrictClick = (id, name, side) => {
-    setRestourant(null);
+    setRestaurants(null);
     setSearchQuery("");
     if (selectedDistrict === id) {
       setSelectedDistrict(null);
@@ -90,75 +78,63 @@ export default function HomePage() {
       setNeighborhoodInfo(null);
     } else {
       setSelectedDistrict(id);
-      setSelectedInfo({ id, name, side, ...getMockData(name, selectedCategory?.label ?? "") });
       setSelectedNeighborhood(null);
       setNeighborhoodInfo(null);
+      fetchDistrictAnalytics(id, name, side, selectedCategory?.id ?? null);
     }
   };
 
-  const handleNeighborhoodSelect = (neighborhoodName) => {
-    if (!neighborhoodName) {
+  const handleNeighborhoodSelect = (neighborhoodId, neighborhoodName) => {
+    if (!neighborhoodId) {
       setSelectedNeighborhood(null);
       setNeighborhoodInfo(null);
     } else {
-      setSelectedNeighborhood(neighborhoodName);
-      setNeighborhoodInfo(getMockData(neighborhoodName, selectedCategory?.label ?? ""));
+      setSelectedNeighborhood(neighborhoodId);
+      fetchNeighborhoodAnalytics(neighborhoodId, neighborhoodName, selectedCategory?.id ?? null);
     }
   };
 
   const handleCategorySelect = (cat) => {
     setSelectedCategory(cat);
-    // Seçili ilçe varsa analizleri yeniden hesapla
     if (selectedInfo) {
-      setSelectedInfo((prev) => ({
-        ...prev,
-        ...getMockData(prev.name, cat?.label ?? ""),
-      }));
+      fetchDistrictAnalytics(selectedInfo.id, selectedInfo.name, selectedInfo.side, cat?.id ?? null);
     }
     if (selectedNeighborhood) {
-      setNeighborhoodInfo(getMockData(selectedNeighborhood, cat?.label ?? ""));
+      fetchNeighborhoodAnalytics(selectedNeighborhood, neighborhoodInfo?.name, cat?.id ?? null);
     }
   };
 
-  const handleSearch = (query) => {
+  const handleSearch = async (query) => {
     setSearchQuery(query);
     if (!query) {
-      setRestourant(null);
+      setRestaurants(null);
       setSelectedInfo(null);
       setSelectedDistrict(null);
       setSelectedNeighborhood(null);
       setNeighborhoodInfo(null);
       setSelectedCategory(null);
-    } else {
-      const filtered = restourants.filter((r) =>
-        r.name.toLowerCase().includes(query.toLowerCase()),
-      );
-      setRestourant(filtered);
-      if (filtered.length > 0) {
-        // Auto-select category based on restaurant type
-        const restaurantCategory = filtered[0].category ?? null;
-        setSelectedCategory(restaurantCategory);
-
-        const district = districts.find((d) => d.id === filtered[0].district);
-        setSelectedDistrict(filtered[0].district);
+      return;
+    }
+    try {
+      const results = await api.searchRestaurants(query);
+      setRestaurants(results);
+      if (results.length > 0) {
+        const first = results[0];
+        const district = districts.find((d) => d.id === first.district_id);
+        setSelectedDistrict(first.district_id);
         setSelectedNeighborhood(null);
         setNeighborhoodInfo(null);
-
         if (district) {
-          setSelectedInfo({
-            id: district.id,
-            name: district.name,
-            side: district.side,
-            ...getMockData(district.name, restaurantCategory?.label ?? ""),
-          });
+          fetchDistrictAnalytics(district.id, district.name, district.side, null);
         }
       }
+    } catch {
+      setRestaurants([]);
     }
   };
 
-  // Active analytics data: neighborhood-level when selected, otherwise district-level
   const activeAnalytics = selectedNeighborhood && neighborhoodInfo
-    ? { name: selectedNeighborhood, categoryLabel: selectedCategory?.label, ...neighborhoodInfo }
+    ? { name: neighborhoodInfo.name, categoryLabel: selectedCategory?.label, ...neighborhoodInfo }
     : selectedInfo
       ? { name: selectedInfo.name, categoryLabel: selectedCategory?.label, ...selectedInfo }
       : null;
@@ -166,13 +142,10 @@ export default function HomePage() {
   const selectedPath = districts.find((d) => d.id === selectedDistrict);
 
   return (
-    
     <div className="font-sans">
       <section className="min-h-screen flex mb-15">
         <SideBarDistricts
-          setDistrict={({ id, name, side }) =>
-            handleDistrictClick(id, name, side)
-          }
+          setDistrict={({ id, name, side }) => handleDistrictClick(id, name, side)}
         />
 
         <div className="flex-1 px-6 py-4">
@@ -180,75 +153,76 @@ export default function HomePage() {
             <SearchBar onSearch={handleSearch} value={searchQuery} onChange={setSearchQuery} className="w-full" />
           </div>
 
-        {/* Harita */}
-        <div className="w-full mt-1 max-w-7xl mx-auto">
-          <IstanbulMap
-            selectedDistrict={selectedDistrict}
-            onDistrictClick={handleDistrictClick}
-          />
-        </div>
-        <DistrictCard
-          selectedInfo={selectedInfo}
-          selectedPath={selectedPath}
-          className="mt-8"
-          restaurants={restourant}
-        />
-        <RestaurantCard restaurants={restourant} />
-        {selectedInfo && (
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 mt-4">
-            <PlatformDonutCard
-              districtName={activeAnalytics.name}
-              categoryLabel={activeAnalytics.categoryLabel}
-              platforms={activeAnalytics.platforms}
+          <div className="w-full mt-1 max-w-7xl mx-auto">
+            <IstanbulMap
+              selectedDistrict={selectedDistrict}
+              onDistrictClick={handleDistrictClick}
             />
-            <BudgetAnalyticsCard
-              districtName={activeAnalytics.name}
-              categoryLabel={activeAnalytics.categoryLabel}
-              data={activeAnalytics.budget}
-            />
-            <SalesForecastCard
-              districtName={activeAnalytics.name}
-              categoryLabel={activeAnalytics.categoryLabel}
-              forecast={activeAnalytics.forecast}
-            />
-            <NeighborhoodCard
-              districtId={selectedInfo.id}
-              districtName={selectedInfo.name}
-              onSelect={handleNeighborhoodSelect}
-            />
-
-            {/* O iki boşluğu dolduran operasyonel kartlar burada: */}
-            <RestaurantOperationalCard type="cancel" />
-              <RestaurantOperationalCard type="return" />
           </div>
-        )}
-      </div>
-      <SideBarCategories onCategorySelect={handleCategorySelect} />
+
+          <DistrictCard
+            selectedInfo={selectedInfo}
+            selectedPath={selectedPath}
+            className="mt-8"
+            restaurants={restaurants}
+          />
+          <RestaurantCard restaurants={restaurants} />
+
+          {selectedInfo && (
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 mt-4">
+              <PlatformDonutCard
+                districtName={activeAnalytics.name}
+                categoryLabel={activeAnalytics.categoryLabel}
+                platforms={activeAnalytics.platforms}
+                loading={analyticsLoading}
+                error={analyticsError}
+              />
+              <BudgetAnalyticsCard
+                districtName={activeAnalytics.name}
+                categoryLabel={activeAnalytics.categoryLabel}
+                data={activeAnalytics.budget}
+                loading={analyticsLoading}
+                error={analyticsError}
+              />
+              <SalesForecastCard
+                districtName={activeAnalytics.name}
+                categoryLabel={activeAnalytics.categoryLabel}
+                forecast={activeAnalytics.forecast}
+                loading={analyticsLoading}
+                error={analyticsError}
+              />
+              <NeighborhoodCard
+                districtId={selectedInfo.id}
+                districtName={selectedInfo.name}
+                onSelect={handleNeighborhoodSelect}
+              />
+              <RestaurantOperationalCard type="cancel" />
+              <RestaurantOperationalCard type="return" />
+            </div>
+          )}
+        </div>
+        <SideBarCategories onCategorySelect={handleCategorySelect} />
       </section>
 
-  <section className="min-h-screen mb-15">
-      <Kiyaslama />
-  </section>
+      <section className="min-h-screen mb-15">
+        <Kiyaslama />
+      </section>
 
-  <section className="min-h-screen mb-15">
-      <RestaurantCaseStudy />
-  </section>
+      <section className="min-h-screen mb-15">
+        <RestaurantCaseStudy />
+      </section>
 
-<section className="min-h-screen mb-15">
-      <LoyaltyPage />
-  </section>
+      <section className="min-h-screen mb-15">
+        <LoyaltyPage />
+      </section>
 
-<section className="min-h-screen mb-15">
-      <ComparisonDashboard />
-  </section>
+      <section className="min-h-screen mb-15">
+        <ComparisonDashboard />
+      </section>
 
-  <section className="min-h-screen mb-15">
-    <CommentAnalist/>
-  </section>
-    <section className="min-h-screen mb-15">
-      <CommentAnalist />
-  </section>
-
-</div>
+      <section className="min-h-screen mb-15">
+        <CommentAnalist />
+      </section>
+    </div>
   );
 }

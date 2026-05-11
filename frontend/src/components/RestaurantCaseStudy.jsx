@@ -1,44 +1,37 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { CheckCircle2, XCircle, Tag, ShoppingBasket } from 'lucide-react';
-
-const successStories = [
-  {
-    id: 1,
-    title: "Pizza Napoli - Kadıköy",
-    before: {
-      image: "/ResturantImage1.png",
-      dailyOrder: "8-12 adet",
-      avgBasket: "120 ₺",
-      complaints: ["Geç teslimat", "Soğuk ürün", "Yüksek fiyat algısı"]
-    },
-    after: {
-      image: "/ResturantImage2.png",
-      dailyOrder: "35-50 adet",
-      avgBasket: "165 ₺",
-      improvements: ["Teslimat süresi optimize edildi", "Kampanya kullanımı artırıldı", "Menü fiyat dengesi sağlandı"]
-    }
-  },
-  {
-    id: 2,
-    title: "Burger House - Üsküdar",
-    before: {
-      image: "https://images.unsplash.com/photo-1552566626-52f8b828add9?q=80&w=800",
-      dailyOrder: "5-10 adet",
-      avgBasket: "90 ₺",
-      complaints: ["Düşük görünürlük", "Kampanya yok", "Yüksek kargo"]
-    },
-    after: {
-      image: "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?q=80&w=800",
-      dailyOrder: "28-50 adet",
-      avgBasket: "150 ₺",
-      improvements: ["Trendyol kampanyaları aktif edildi", "Kampanya kullanımı artırıldı", "Ücretsiz kargo stratejisi"]
-    }
-  }
-];
+import { api } from '../api/client';
 
 const RestaurantCaseStudy = () => {
+  const [stories, setStories] = useState([]);
   const [activeIndex, setActiveIndex] = useState(0);
-  const story = successStories[activeIndex];
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    api.getCaseStudies()
+      .then(setStories)
+      .catch((err) => setError(err.message))
+      .finally(() => setLoading(false));
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-[#f3f6f9] flex items-center justify-center">
+        <span className="loading loading-spinner loading-lg text-primary" />
+      </div>
+    );
+  }
+
+  if (error || stories.length === 0) {
+    return (
+      <div className="min-h-screen bg-[#f3f6f9] flex items-center justify-center">
+        <p className="text-gray-400 text-sm">{error ?? "Henüz başarı hikayesi eklenmemiş."}</p>
+      </div>
+    );
+  }
+
+  const story = stories[activeIndex] ?? stories[0];
 
   return (
     <div className="min-h-screen bg-[#f3f6f9] py-12 px-4 font-sans">
@@ -53,18 +46,16 @@ const RestaurantCaseStudy = () => {
         </div>
 
         <div className="p-6 md:p-10 grid md:grid-cols-2 gap-8">
-          {/* ÖNCESİ BÖLÜMÜ */}
+          {/* ÖNCESİ */}
           <div className="flex flex-col gap-6">
             <h4 className="text-center font-bold text-gray-700 text-xl">Öncesi</h4>
-            {/* Yüksekliği h-[550px] yaparak Figma'daki uzunluğu yakaladık */}
             <div className="rounded-3xl overflow-hidden h-[550px] shadow-md border border-gray-100">
-              <img 
-                src={story.before.image} 
-                alt="Öncesi" 
-                className="w-full h-full object-cover object-center" 
-              />
+              {story.before.image ? (
+                <img src={story.before.image} alt="Öncesi" className="w-full h-full object-cover object-center" />
+              ) : (
+                <div className="w-full h-full bg-gray-100 flex items-center justify-center text-gray-400 text-sm">Görsel yok</div>
+              )}
             </div>
-            
             <div className="bg-[#fff1f1] rounded-2xl p-6 space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div className="flex items-start gap-2">
@@ -72,7 +63,7 @@ const RestaurantCaseStudy = () => {
                   <div>
                     <p className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Günlük Sipariş</p>
                     <p className="text-sm font-bold flex items-center gap-1">
-                      <CheckCircle2 className="w-3.5 h-3.5 text-red-400" /> {story.before.dailyOrder}
+                      <CheckCircle2 className="w-3.5 h-3.5 text-red-400" /> {story.before.dailyOrder ?? "-"}
                     </p>
                   </div>
                 </div>
@@ -81,12 +72,11 @@ const RestaurantCaseStudy = () => {
                   <div>
                     <p className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Ortalama Sepet</p>
                     <p className="text-sm font-bold flex items-center gap-1">
-                      <CheckCircle2 className="w-3.5 h-3.5 text-red-400" /> {story.before.avgBasket}
+                      <CheckCircle2 className="w-3.5 h-3.5 text-red-400" /> {story.before.avgBasket ?? "-"}
                     </p>
                   </div>
                 </div>
               </div>
-
               <div className="pt-4 border-t border-red-200">
                 <div className="flex items-center gap-2 mb-2">
                   <XCircle className="text-red-500 w-5 h-5" />
@@ -103,17 +93,16 @@ const RestaurantCaseStudy = () => {
             </div>
           </div>
 
-          {/* SONRASI BÖLÜMÜ */}
+          {/* SONRASI */}
           <div className="flex flex-col gap-6">
             <h4 className="text-center font-bold text-gray-700 text-xl">Sonrası</h4>
             <div className="rounded-3xl overflow-hidden h-[550px] shadow-md border border-gray-100">
-              <img 
-                src={story.after.image} 
-                alt="Sonrası" 
-                className="w-full h-full object-cover object-center" 
-              />
+              {story.after.image ? (
+                <img src={story.after.image} alt="Sonrası" className="w-full h-full object-cover object-center" />
+              ) : (
+                <div className="w-full h-full bg-gray-100 flex items-center justify-center text-gray-400 text-sm">Görsel yok</div>
+              )}
             </div>
-
             <div className="bg-[#f0f9f4] rounded-2xl p-6 space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div className="flex items-start gap-2">
@@ -121,7 +110,7 @@ const RestaurantCaseStudy = () => {
                   <div>
                     <p className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Günlük Sipariş</p>
                     <p className="text-sm font-bold flex items-center gap-1">
-                      <CheckCircle2 className="w-3.5 h-3.5 text-green-500" /> {story.after.dailyOrder}
+                      <CheckCircle2 className="w-3.5 h-3.5 text-green-500" /> {story.after.dailyOrder ?? "-"}
                     </p>
                   </div>
                 </div>
@@ -130,12 +119,11 @@ const RestaurantCaseStudy = () => {
                   <div>
                     <p className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Ortalama Sepet</p>
                     <p className="text-sm font-bold flex items-center gap-1">
-                      <CheckCircle2 className="w-3.5 h-3.5 text-green-500" /> {story.after.avgBasket}
+                      <CheckCircle2 className="w-3.5 h-3.5 text-green-500" /> {story.after.avgBasket ?? "-"}
                     </p>
                   </div>
                 </div>
               </div>
-
               <div className="pt-4 border-t border-green-200">
                 <div className="flex items-center gap-2 mb-2">
                   <XCircle className="text-green-500 w-5 h-5 rotate-45" />
@@ -154,14 +142,15 @@ const RestaurantCaseStudy = () => {
         </div>
       </div>
 
-      {/* Pagination aynı kalıyor */}
       <div className="flex justify-center gap-3 mt-8">
-        {[0, 1, 2].map((num) => (
+        {stories.map((_, num) => (
           <button
             key={num}
-            onClick={() => num < successStories.length && setActiveIndex(num)}
+            onClick={() => setActiveIndex(num)}
             className={`w-10 h-10 rounded-full font-bold transition-all ${
-              activeIndex === num ? 'bg-[#4d44f5] text-white' : 'bg-white text-[#4d44f5] border border-[#4d44f5] hover:bg-indigo-50'
+              activeIndex === num
+                ? 'bg-[#4d44f5] text-white'
+                : 'bg-white text-[#4d44f5] border border-[#4d44f5] hover:bg-indigo-50'
             }`}
           >
             {num + 1}
@@ -171,4 +160,5 @@ const RestaurantCaseStudy = () => {
     </div>
   );
 };
+
 export default RestaurantCaseStudy;
