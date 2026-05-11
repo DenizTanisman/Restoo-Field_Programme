@@ -2,7 +2,7 @@ from datetime import date, datetime
 from sqlalchemy import String, Integer, Numeric, Date, DateTime, ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, relationship # relationship eklendi
 from sqlalchemy.sql import func
-from app.database import Base
+from app.models.base import Base
 
 class Competitor(Base):
     __tablename__ = "competitors"

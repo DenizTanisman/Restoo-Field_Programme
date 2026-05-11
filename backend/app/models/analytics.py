@@ -2,7 +2,7 @@ from datetime import date, datetime
 from sqlalchemy import String, Integer, Numeric, Date, DateTime, ForeignKey, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.sql import func
-from app.database import Base
+from app.models.base import Base
 
 class DistrictAnalytics(Base):
     __tablename__ = "district_analytics"
