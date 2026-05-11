@@ -8,10 +8,10 @@ from app.models.base import Base
 class CaseStudy(Base):
     __tablename__ = "case_studies"
 
-    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincerment=True)
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     title: Mapped[str] = mapped_column(String(200), nullable=False)
     district_id: Mapped[str | None] = mapped_column(String(50), ForeignKey("districts.id"), nullable=True)
-    category_id: Mapped[int | None] = mapped_column(Integer, ForeignKey("category_id"), nullable=True)
+    category_id: Mapped[int | None] = mapped_column(Integer, ForeignKey("categories.id"), nullable=True)
     sort_order: Mapped[int] = mapped_column(Integer, default=0)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
 
