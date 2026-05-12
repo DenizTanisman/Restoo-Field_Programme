@@ -6,7 +6,7 @@ services:
       POSTGRES_USER: opencard
       POSTGRES_PASSWORD: opencard
     ports:
-      - "5433:5432"
+      - "5436:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
     healthcheck:
@@ -34,7 +34,7 @@ services:
       args:
         VITE_API_URL: http://localhost:8001
     ports:
-      - "5174:80"
+      - "5176:80"
     depends_on:
       - backend
 

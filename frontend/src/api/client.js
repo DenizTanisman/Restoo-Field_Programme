@@ -33,6 +33,9 @@ export const api = {
   // Restaurants
   searchRestaurants: (query) =>
     request(`/restaurants/search?q=${encodeURIComponent(query)}`),
+  listRestaurants: () => request("/restaurants"),
+  createRestaurant: (data) =>
+    request("/restaurants", { method: "POST", body: JSON.stringify(data) }),
 
   // Case Studies
   getCaseStudies: () => request("/case-studies"),

@@ -55,7 +55,7 @@ export default function BudgetAnalyticsCard({
   }));
 
   return (
-    <div className="card bg-base-100 shadow-md rounded-2xl">
+    <div className="card bg-base-100 shadow-md rounded-2xl h-full">
       <div className="card-body p-5">
         {/* Başlık */}
         <div className="mb-3">

@@ -1,28 +1,19 @@
 // components/RestaurantCard.jsx
 import React from "react";
 
-const TrendyolIcon = () => (
-  <svg width="50" height="70" viewBox="0 0 60 48" fill="none">
-    <circle cx="27" cy="20" r="28" fill="#FF6000" />
-    <text x="24" y="23" textAnchor="middle" fill="white" fontSize="15" fontWeight="bold">TGo</text>
-  </svg>
+const UberEatsIcon = () => (
+  <img src="/logos/ubereats.png" alt="Uber Eats" className="w-12 h-12 object-contain" />
 );
 
 const GetirIcon = () => (
-  <svg width="50" height="70" viewBox="0 0 60 48" fill="none">
-    <circle cx="27" cy="20" r="28" fill="#5C3EBC" />
-    <text x="24" y="23" textAnchor="middle" fill="#FFD603" fontSize="15" fontWeight="bold">getir</text>
-  </svg>
+  <img src="/logos/getir.png" alt="Getir" className="w-12 h-12 object-contain" />
 );
 
 const YemeksepIcon = () => (
-  <svg width="50" height="70" viewBox="0 0 60 48" fill="none">
-    <circle cx="27" cy="20" r="28" fill="#CC0000" />
-    <text x="24" y="23" textAnchor="middle" fill="white" fontSize="9" fontWeight="bold">yemeksepeti</text>
-  </svg>
+  <img src="/logos/yemeksepeti.png" alt="Yemeksepeti" className="w-12 h-12 object-contain" />
 );
 
-const PLATFORM_ICONS = [<TrendyolIcon />, <GetirIcon />, <YemeksepIcon />];
+const PLATFORM_ICONS = [<UberEatsIcon />, <GetirIcon />, <YemeksepIcon />];
 
 export default function RestaurantCard({ restaurants }) {
   if (!restaurants || restaurants.length === 0) return null;

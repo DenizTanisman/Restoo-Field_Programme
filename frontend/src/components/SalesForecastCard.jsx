@@ -17,14 +17,14 @@ const PERIODS = [
 ];
 
 const PLATFORM_COLORS = {
-  "Trendyol Go":   "#FF6000",
+  "Uber Eats Trendyol Go": "#FF6000",
   "Getir":         "#5C3EBC",
   "Yemeksepeti":   "#CC0000",
 };
 
 function resolveColor(name) {
   const n = name?.toLowerCase() ?? "";
-  if (n.includes("trendyol")) return "#FF6000";
+  if (n.includes("uber") || n.includes("trendyol")) return "#FF6000";
   if (n.includes("getir"))    return "#5C3EBC";
   if (n.includes("yemek"))    return "#CC0000";
   return "#94a3b8";
@@ -80,7 +80,7 @@ export default function SalesForecastCard({
   const periodSuffix = { daily: "/ gün", monthly: "/ ay", yearly: "/ yıl" };
 
   return (
-    <div className="card bg-base-100 shadow-md rounded-2xl">
+    <div className="card bg-base-100 shadow-md rounded-2xl h-full">
       <div className="card-body p-5">
         {/* Başlık */}
         <div className="mb-3">

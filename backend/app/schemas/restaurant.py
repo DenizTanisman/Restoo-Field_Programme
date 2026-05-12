@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
 class RestaurantPlatformSchema(BaseModel):
@@ -18,3 +18,10 @@ class RestaurantSchema(BaseModel):
     platforms: list[RestaurantPlatformSchema]
 
     model_config = {"from_attributes": True}
+
+
+class RestaurantCreateSchema(BaseModel):
+    name: str = Field(min_length=1, max_length=200)
+    district_id: str
+    category_id: int
+    is_active: bool = True

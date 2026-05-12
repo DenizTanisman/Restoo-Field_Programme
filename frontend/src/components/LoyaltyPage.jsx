@@ -7,10 +7,10 @@ const stats = [
 
 export default function SadakatPage() {
   return (
-    <div className="min-h-screen bg-base-100">
+    <div className="bg-base-100 rounded-3xl overflow-hidden">
 
       {/* HERO */}
-      <section className="relative overflow-hidden px-6 py-20 text-center">
+      <section className="relative overflow-hidden px-6 py-12 text-center">
         <div className="pointer-events-none absolute inset-0">
           <img
             src="https://images.unsplash.com/photo-1556740738-b6a63e27c4df?auto=format&fit=crop&w=1800&q=80"
@@ -29,7 +29,7 @@ export default function SadakatPage() {
               <span className="text-primary">gelirini büyüt.</span>
             </h1>
             <p className="mx-auto mb-8 max-w-xl text-base font-medium text-base-content/60 sm:text-lg">
-              Yemeksepeti, Trendyol ve Getir gibi platformlardaki müşterilerinizi segmentlere ayırın,
+              Yemeksepeti, Uber Eats ve Getir gibi platformlardaki müşterilerinizi segmentlere ayırın,
               risk altındakileri tespit edin, doğru kampanyayla geri kazanın.
             </p>
             <div className="flex flex-wrap justify-center gap-3">
@@ -78,7 +78,7 @@ export default function SadakatPage() {
   <div className="card-body">
     <h2 className="card-title">Performans Karşılaştırmaları</h2>
     <p>Dönemsel karşılaştırmalar sunarak bu ay/hafta ile geçen ay/hafta arasındaki sadakat metriklerini kıyaslamanıza olanak sağlıyoruz.
-Platform bazlı analiz sunarak Yemeksepeti, Getir ve Trendyol üzerinden gelen siparişlerin sadakat farklılıklarını görmenize katkı sağlıyoruz.
+Platform bazlı analiz sunarak Yemeksepeti, Getir ve Uber Eats üzerinden gelen siparişlerin sadakat farklılıklarını görmenize katkı sağlıyoruz.
 Trend grafikleri sunarak sadakat metriklerinin zaman içindeki değişimini takip etmenize yardımcı oluyoruz.</p>
     <div className="card-actions justify-end">
     </div>

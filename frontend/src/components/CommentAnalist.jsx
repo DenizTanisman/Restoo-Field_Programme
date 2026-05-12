@@ -1,12 +1,14 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { api } from "../api/client";
+import { districts as MAP_DISTRICTS } from "../data/mapData";
 
 
 
 
 const PLATFORMS = [
-  { id: "Y", label: "Yemeksepeti",   bg: "bg-pink-500",   pct: 85 },
-  { id: "G", label: "Getiryemek",    bg: "bg-purple-700", pct: 60 },
-  { id: "T", label: "Trendyolyemek", bg: "bg-amber-500",  pct: 42 },
+  { id: "Y", label: "Yemeksepeti", logo: "/logos/yemeksepeti.png", bg: "bg-pink-500",   pct: 85 },
+  { id: "G", label: "Getir",       logo: "/logos/getir.png",       bg: "bg-purple-700", pct: 60 },
+  { id: "U", label: "Uber Eats Trendyol Go", logo: "/logos/ubereats.png", bg: "bg-orange-500", pct: 42 },
 ];
 
 const RATINGS = [
@@ -51,14 +53,7 @@ const DISTRICTS = [
   { name: "Sarıyer",       pct: 12, count: "48",  bar: "bg-green-600",  badge: "bg-green-100 text-green-700",   risk: "İyi"         },
 ];
 
-const PERIODS = ["Son 1 Ay"];
-const ILCELER = [
-  "İlçeler", "Adalar","Arnavutköy","Ataşehir", "Avcılar", "Bağcılar",
-  "Bahçelievler", "Bakırköy", "Başakşehir", "Bayrampaşa", "Beşiktaş", "Beykoz", "Beylikdüzü",
-  "Beyoğlu", "Büyükçekmece", "Çatalca", "Çekmeköy", "Esenler", "Esenyurt", "Eyüpsultan", "Fatih", "Gaziosmanpaşa",
-  "Güngören", "Kadıköy", "Kağıthane", "Kartal", "Küçükçekmece", "Maltepe", "Pendik", "Sancaktepe", "Sarıyer", "Silivri",
-  "Sultanbeyli", "Sultangazi", "Şile", "Şişli", "Tuzla", "Ümraniye", "Üsküdar", "Zeytinburnu"
-];
+const SORTED_DISTRICTS = [...MAP_DISTRICTS].sort((a, b) => a.name.localeCompare(b.name, "tr"));
 
 
 
@@ -125,9 +120,7 @@ function PlatformChart() {
       <div className="space-y-3">
         {PLATFORMS.map((p) => (
           <div key={p.id} className="flex items-center gap-3">
-            <div className={`w-8 h-8 rounded-full ${p.bg} flex items-center justify-center text-white text-xs font-bold shrink-0`}>
-              {p.id}
-            </div>
+            <img src={p.logo} alt={p.label} className="w-8 h-8 rounded-full object-cover shrink-0 bg-white" />
             <div className="flex-1 bg-gray-100 rounded-md h-8 overflow-hidden">
               <div
                 className={`${p.bg} h-full rounded-md flex items-center pl-3`}
@@ -237,54 +230,88 @@ function DistrictChart() {
 
 
 
-export default function OlumsuzYorumlarPaneli() {
-  const [period, setPeriod]     = useState("Son 1 Ay");
-  const [district, setDistrict] = useState("İlçeler");
+export default function OlumsuzYorumlarPaneli({ districtId, neighborhoodId, neighborhoodName }) {
+  const [selectedDistrictId, setSelectedDistrictId] = useState(districtId || "");
+  const [selectedNeighborhoodId, setSelectedNeighborhoodId] = useState(neighborhoodId || "");
+  const [neighborhoods, setNeighborhoods] = useState([]);
+
+  // Ana sayfadan gelen prop değişirse senkronize et
+  useEffect(() => {
+    if (districtId) setSelectedDistrictId(districtId);
+  }, [districtId]);
+  useEffect(() => {
+    if (neighborhoodId) setSelectedNeighborhoodId(neighborhoodId);
+  }, [neighborhoodId]);
+
+  // İlçe seçilince mahalleleri çek
+  useEffect(() => {
+    if (!selectedDistrictId) {
+      setNeighborhoods([]);
+      return;
+    }
+    let alive = true;
+    api
+      .getDistrictNeighborhoods(selectedDistrictId)
+      .then((data) => {
+        if (alive) setNeighborhoods(data);
+      })
+      .catch(() => alive && setNeighborhoods([]));
+    return () => { alive = false; };
+  }, [selectedDistrictId]);
+
+  const handleDistrictChange = (e) => {
+    setSelectedDistrictId(e.target.value);
+    setSelectedNeighborhoodId(""); // ilçe değişince mahalle sıfırla
+  };
 
   return (
-    <div className="min-h-screen bg-gray-100 p-6 font-sans">
-      <div className="max-w-4xl mx-auto bg-white rounded-3xl shadow-lg overflow-hidden">
+    <div className="font-sans">
+      <div className="bg-white rounded-3xl shadow-lg overflow-hidden">
 
         {/* Header */}
-        <div className="flex items-center gap-3 px-6 py-4 border-b border-gray-100">
-          <ThumbDownIcon className="w-9 h-9" />
-          <h1 className="text-xl text-gray-800">
-            Olumsuz Yorumlar Analiz Paneli
+        <div className="px-6 py-5 border-b border-gray-100">
+          <h1 className="text-2xl font-bold text-slate-900 text-center mb-4">
+            Olumsuz Yorumlar Analiz Paneli (1 Ay)
           </h1>
-          <div className="ml-auto flex gap-2">
+          <div className="flex flex-wrap gap-2 justify-center">
             <select
-              value={period}
-              onChange={(e) => setPeriod(e.target.value)}
-              className="text-xs border border-gray-200 rounded-lg px-3 py-1.5 bg-white text-gray-600 outline-none cursor-pointer"
+              value={selectedDistrictId}
+              onChange={handleDistrictChange}
+              className="text-sm border border-gray-200 rounded-lg px-3 py-1.5 bg-white text-gray-700 outline-none cursor-pointer"
             >
-              {PERIODS.map((o) => <option key={o}>{o}</option>)}
+              <option value="">İlçe seç</option>
+              {SORTED_DISTRICTS.map((d) => (
+                <option key={d.id} value={d.id}>{d.name}</option>
+              ))}
             </select>
             <select
-              value={district}
-              onChange={(e) => setDistrict(e.target.value)}
-              className="text-xs border border-gray-200 rounded-lg px-3 py-1.5 bg-white text-gray-600 outline-none cursor-pointer"
+              value={selectedNeighborhoodId}
+              onChange={(e) => setSelectedNeighborhoodId(e.target.value)}
+              disabled={!selectedDistrictId}
+              className="text-sm border border-gray-200 rounded-lg px-3 py-1.5 bg-white text-gray-700 outline-none cursor-pointer disabled:opacity-50"
             >
-              {ILCELER.map((o) => <option key={o}>{o}</option>)}
+              <option value="">Tüm mahalleler</option>
+              {neighborhoods.map((n) => (
+                <option key={n.id} value={n.id}>{n.name}</option>
+              ))}
             </select>
           </div>
         </div>
 
         <div className="p-5 space-y-4 bg-gray-50">
 
-          <div className="grid grid-cols-3 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3">
             <MetricCard Icon={ThumbDownIcon}  label="Toplam Olumsuz Yorum" value="1,452" valueClass="text-red-500"    />
             <MetricCard Icon={TrendDownIcon}  label="Olumsuz Yorum Oranı"  value="%25"   valueClass="text-orange-500" />
             <MetricCard Icon={StarOutlineIcon} label="Ortalama Puan"        value="2.6"   valueClass="text-amber-500"  />
           </div>
 
-          
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 xl:grid-cols-2 gap-3">
             <PlatformChart />
             <RatingChart />
           </div>
 
-        
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 xl:grid-cols-2 gap-3">
             <WordCloud />
             <DistrictChart />
           </div>

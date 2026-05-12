@@ -12,6 +12,18 @@ const SIDE_LABEL = {
   adalar: "Adalar",
 };
 
+function pathBBox(d, padding = 6) {
+  const nums = [];
+  const regex = /[-+]?[0-9]*\.?[0-9]+/g;
+  let m;
+  while ((m = regex.exec(d)) !== null) nums.push(parseFloat(m[0]));
+  const xs = nums.filter((_, i) => i % 2 === 0);
+  const ys = nums.filter((_, i) => i % 2 === 1);
+  const minX = Math.min(...xs), maxX = Math.max(...xs);
+  const minY = Math.min(...ys), maxY = Math.max(...ys);
+  return `${minX - padding} ${minY - padding} ${maxX - minX + padding * 2} ${maxY - minY + padding * 2}`;
+}
+
 function DistrictPath({ district, isSelected, onDistrictClick, onHover }) {
   const fill = isSelected
     ? COLORS.selected[district.side]
@@ -61,8 +73,30 @@ export default function IstanbulMap({ onDistrictClick, selectedDistrict }) {
     });
   };
 
+  const selectedObj = districts.find((d) => d.id === selectedDistrict);
+  const selectedName = selectedObj?.name;
+  const selectedFill = selectedObj
+    ? COLORS.selected[selectedObj.side]
+    : null;
+
   return (
     <div ref={containerRef} style={{ position: "relative", width: "100%" }}>
+      <div className="absolute top-3 right-4 z-10 pointer-events-none flex items-center gap-3 bg-white/80 backdrop-blur px-4 py-2 rounded-lg shadow-md">
+        {selectedObj && (
+          <svg
+            viewBox={pathBBox(selectedObj.d)}
+            width="40"
+            height="32"
+            xmlns="http://www.w3.org/2000/svg"
+            style={{ overflow: "visible" }}
+          >
+            <path d={selectedObj.d} fill={selectedFill} stroke="white" strokeWidth="0.8" />
+          </svg>
+        )}
+        <span className="text-xl font-bold text-slate-800">
+          İstanbul{selectedName ? ` / ${selectedName}` : ""}
+        </span>
+      </div>
       <svg
         viewBox="0 65 305 170"
         preserveAspectRatio="xMidYMid meet"

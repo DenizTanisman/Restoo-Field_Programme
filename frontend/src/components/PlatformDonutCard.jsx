@@ -2,15 +2,15 @@ import React from "react";
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, Legend } from "recharts";
 
 const PLATFORMS = [
-  { key: "trendyol", label: "Trendyol Go", color: "#FF6000" },
-  { key: "getir",    label: "Getir",       color: "#5C3EBC" },
+  { key: "ubereats", label: "Uber Eats Trendyol Go", color: "#FF6000" },
+  { key: "getir",    label: "Getir",     color: "#5C3EBC" },
   { key: "yemeksepeti", label: "Yemeksepeti", color: "#CC0000" },
 ];
 
 // platform.name alanını renkle eşleştir
 function resolveColor(name) {
   const n = name?.toLowerCase() ?? "";
-  if (n.includes("trendyol")) return "#FF6000";
+  if (n.includes("uber") || n.includes("trendyol")) return "#FF6000";
   if (n.includes("getir"))    return "#5C3EBC";
   if (n.includes("yemek"))    return "#CC0000";
   return "#94a3b8";
@@ -60,7 +60,7 @@ export default function PlatformDonutCard({ districtName, categoryLabel, platfor
   }));
 
   return (
-    <div className="card bg-base-100 shadow-md rounded-2xl">
+    <div className="card bg-base-100 shadow-md rounded-2xl h-full">
       <div className="card-body p-5">
         {/* Başlık */}
         <div className="mb-3">

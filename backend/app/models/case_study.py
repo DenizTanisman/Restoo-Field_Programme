@@ -1,8 +1,11 @@
 from datetime import datetime
-from sqlalchemy import String, Text, ForeignKey, func, Integer, Boolean
+from sqlalchemy import JSON, String, Text, ForeignKey, func, Integer, Boolean
 from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy.dialects.postgresql import ARRAY
 from app.models.base import Base
+
+# Postgres'te ARRAY(Text), SQLite gibi ARRAY desteklemeyen dialect'lerde JSON.
+_StrList = ARRAY(Text).with_variant(JSON(), "sqlite")
 
 
 class CaseStudy(Base):
@@ -19,13 +22,13 @@ class CaseStudy(Base):
     before_image_url: Mapped[str | None] = mapped_column(Text, nullable=True)
     before_daily_order: Mapped[str | None] = mapped_column(String(50), nullable=True)
     before_avg_basket: Mapped[str | None] = mapped_column(String(50), nullable=True)
-    before_complaints: Mapped[list[str] | None] = mapped_column(ARRAY(Text), nullable=True)
+    before_complaints: Mapped[list[str] | None] = mapped_column(_StrList, nullable=True)
 
     # Sonrası 
     after_image_url: Mapped[str | None] = mapped_column(Text, nullable=True)
     after_daily_order: Mapped[str | None] = mapped_column(String(50), nullable=True)
     after_avg_basket: Mapped[str | None] = mapped_column(String(50), nullable=True)
-    after_improvements: Mapped[list[str] | None] = mapped_column(ARRAY(Text), nullable=True)
+    after_improvements: Mapped[list[str] | None] = mapped_column(_StrList, nullable=True)
 
     created_at: Mapped[datetime] = mapped_column(server_default=func.now())
     updated_at: Mapped[datetime] = mapped_column(server_default=func.now(), onupdate=func.now())

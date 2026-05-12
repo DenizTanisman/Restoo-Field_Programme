@@ -1,10 +1,12 @@
 from fastapi import APIRouter, Depends, Query
-from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
-from sqlalchemy.orm import selectinload
+from sqlalchemy.ext.asyncio import AsyncSession
+
 from app.database import get_db
-from app.models import Restaurant, RestaurantPlatform
+from app.models import Restaurant
 from app.schemas import RestaurantSchema
+from app.services.restaurant_service import LOAD_OPTIONS, serialize_restaurant
+
 
 router = APIRouter(prefix="/restaurants", tags=["Restaurants"])
 
@@ -17,28 +19,7 @@ async def search_restaurants(
     result = await db.execute(
         select(Restaurant)
         .where(Restaurant.name.ilike(f"%{q}%"), Restaurant.is_active == True)
-        .options(
-            selectinload(Restaurant.district),
-            selectinload(Restaurant.category),
-            selectinload(Restaurant.platforms).selectinload(RestaurantPlatform.platform),
-        )
+        .options(*LOAD_OPTIONS)
         .limit(20)
     )
-    restaurants = result.scalars().all()
-
-    return [
-        RestaurantSchema(
-            id=r.id,
-            name=r.name,
-            district_id=r.district_id,
-            district_name=r.district.name if r.district else "",
-            category_label=r.category.name if r.category else "",
-            category_emoji=r.category.emoji if r.category else "",
-            platforms=[
-                {"name": rp.platform.name, "customers": rp.customers}
-                for rp in r.platforms
-                if rp.platform
-            ],
-        )
-        for r in restaurants
-    ]
+    return [serialize_restaurant(r) for r in result.scalars().all()]
