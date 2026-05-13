@@ -38,3 +38,22 @@ export const analyticsApi = {
     importCsv: (file) => postCsv("/admin/analytics/competitors/csv", file),
   },
 };
+
+export const metricsApi = {
+  district: {
+    list: (params = {}) => request(`/admin/metrics/district${qs(params)}`),
+    upsert: (data) => request("/admin/metrics/district", { method: "POST", body: data }),
+    exportCsv: () => requestBlob("/admin/metrics/district/csv"),
+    importCsv: (file) => postCsv("/admin/metrics/district/csv", file),
+  },
+  neighborhood: {
+    list: (params = {}) => request(`/admin/metrics/neighborhood${qs(params)}`),
+    upsert: (data) => request("/admin/metrics/neighborhood", { method: "POST", body: data }),
+    exportCsv: () => requestBlob("/admin/metrics/neighborhood/csv"),
+    importCsv: (file) => postCsv("/admin/metrics/neighborhood/csv", file),
+  },
+  siteSettings: {
+    get: () => request("/admin/metrics/site-settings"),
+    upsert: (data) => request("/admin/metrics/site-settings", { method: "POST", body: data }),
+  },
+};

@@ -36,23 +36,14 @@ export default function SalesHourHeatmap({ title, subtitle, data, colorRgb = "23
             <div key={day} className="flex items-center gap-0.5 my-0.5">
               <div className="w-9 shrink-0 text-[11px] text-slate-500 font-medium">{day}</div>
               {HOURS.map((hour) => {
-                const value = data?.[dayIdx]?.[hour];
-                if (value === null || value === undefined) {
-                  return (
-                    <div
-                      key={hour}
-                      className="flex-1 min-w-[18px] h-6 bg-slate-100 rounded-sm flex items-center justify-center text-[9px] text-slate-300"
-                    >
-                      ?
-                    </div>
-                  );
-                }
-                const alpha = Math.max(0.05, Math.min(1, value / 100));
+                const raw = data?.[dayIdx]?.[hour];
+                const value = raw === null || raw === undefined ? 0 : Number(raw);
+                const alpha = value > 0 ? Math.max(0.05, Math.min(1, value / 100)) : 0;
                 return (
                   <div
                     key={hour}
-                    className="flex-1 min-w-[18px] h-6 rounded-sm"
-                    style={{ background: `rgba(${colorRgb}, ${alpha.toFixed(2)})` }}
+                    className="flex-1 min-w-[18px] h-6 rounded-sm bg-slate-100"
+                    style={alpha > 0 ? { background: `rgba(${colorRgb}, ${alpha.toFixed(2)})` } : undefined}
                     title={`${day} ${hour}:00 — ${value}`}
                   />
                 );
@@ -74,15 +65,3 @@ export default function SalesHourHeatmap({ title, subtitle, data, colorRgb = "23
   );
 }
 
-// İlçe ortalaması için deterministik tipik teslimat paterni (öğle + akşam pikleri, hafta sonu boost)
-export const SAMPLE_DISTRICT_DATA = Array.from({ length: 7 }, (_, dayIdx) =>
-  Array.from({ length: 24 }, (_, hour) => {
-    let v = 0;
-    if (hour >= 11 && hour <= 14) v = 70 + 12 * Math.sin(hour);
-    else if (hour >= 18 && hour <= 22) v = 80 + 10 * Math.sin(hour);
-    else if (hour >= 8 && hour <= 23) v = 25 + 10 * Math.sin(hour + dayIdx);
-    else v = 5 + 3 * Math.sin(hour + dayIdx);
-    if (dayIdx >= 5) v *= 1.15; // hafta sonu
-    return Math.max(0, Math.min(100, Math.round(v)));
-  })
-);

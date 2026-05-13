@@ -96,10 +96,10 @@ export default function CaseStudiesPage() {
     try {
       if (editing === "new") {
         await caseStudiesApi.create(payload);
-        toast.push("Case study eklendi", "success");
+        toast.push("Başarı hikayesi eklendi", "success");
       } else {
         await caseStudiesApi.update(editing, payload);
-        toast.push("Case study güncellendi", "success");
+        toast.push("Başarı hikayesi güncellendi", "success");
       }
       close();
       load();
@@ -111,7 +111,7 @@ export default function CaseStudiesPage() {
   const remove = async () => {
     try {
       await caseStudiesApi.remove(confirmId);
-      toast.push("Case study pasifleştirildi", "success");
+      toast.push("Başarı hikayesi pasifleştirildi", "success");
       load();
     } catch (err) {
       toast.push(err.message, "error");
@@ -142,10 +142,10 @@ export default function CaseStudiesPage() {
     <div className="card bg-base-100 shadow-sm">
       <div className="card-body">
         <div className="flex justify-between items-center mb-3">
-          <h2 className="card-title">Case Studies</h2>
+          <h2 className="card-title">Başarı Hikayeleri</h2>
           <div className="flex gap-2">
-            <CsvExportButton onExport={caseStudiesApi.exportCsv} filename="case_studies.csv" />
-            <button className="btn btn-sm btn-primary" onClick={openNew}>+ Yeni Case Study</button>
+            <CsvExportButton onExport={caseStudiesApi.exportCsv} filename="basari_hikayeleri.csv" />
+            <button className="btn btn-sm btn-primary" onClick={openNew}>+ Yeni Hikaye</button>
           </div>
         </div>
 
@@ -180,12 +180,12 @@ export default function CaseStudiesPage() {
               },
             ]}
             data={rows}
-            emptyText="Case study yok"
+            emptyText="Henüz başarı hikayesi yok"
           />
         )}
       </div>
 
-      <FormModal open={editing !== null} title={editing === "new" ? "Yeni Case Study" : "Case Study Düzenle"} onClose={close} size="xl">
+      <FormModal open={editing !== null} title={editing === "new" ? "Yeni Başarı Hikayesi" : "Başarı Hikayesini Düzenle"} onClose={close} size="xl">
         <form onSubmit={save} className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             <div className="form-control md:col-span-2">
@@ -273,7 +273,7 @@ export default function CaseStudiesPage() {
 
       <ConfirmDialog
         open={confirmId !== null}
-        message="Bu case study'i pasifleştirmek istediğine emin misin?"
+        message="Bu başarı hikayesini pasifleştirmek istediğine emin misin?"
         onConfirm={remove}
         onCancel={() => setConfirmId(null)}
       />

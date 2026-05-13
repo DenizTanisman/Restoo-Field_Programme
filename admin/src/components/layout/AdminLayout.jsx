@@ -5,12 +5,14 @@ import Header from "./Header";
 const TITLES = {
   "/dashboard": "OpenCard Admin Panel",
   "/analytics": "Analytics",
+  "/metrics": "Metrikler — Operasyon · Skor · Kıyaslama · Yorumlar",
   "/restaurants": "Restaurants",
-  "/case-studies": "Case Studies",
+  "/case-studies": "Başarı Hikayeleri",
   "/applications": "Applications",
   "/categories": "Categories",
   "/platforms": "Platforms",
   "/districts": "Districts",
+  "/settings": "Site Ayarları",
 };
 
 export default function AdminLayout() {

@@ -50,14 +50,18 @@ const renderCustomLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, percent
  *   loading       — bool    (backend isteği sürüyor mu)
  *   error         — string  (hata mesajı, varsa)
  */
+const FALLBACK_DATA = PLATFORMS.map((p) => ({ name: p.label, value: 1, color: "#e2e8f0" }));
+
 export default function PlatformDonutCard({ districtName, categoryLabel, platforms = [], loading = false, error = null }) {
   const total = platforms.reduce((sum, p) => sum + (p.customers ?? 0), 0);
 
-  const data = platforms.map((p) => ({
+  const realData = platforms.map((p) => ({
     name: p.name,
     value: p.customers ?? 0,
     color: resolveColor(p.name),
   }));
+  const data = total > 0 ? realData : FALLBACK_DATA;
+  const displayList = total > 0 ? realData : PLATFORMS.map((p) => ({ name: p.label, value: 0, color: resolveColor(p.label) }));
 
   return (
     <div className="card bg-base-100 shadow-md rounded-2xl h-full">
@@ -86,8 +90,8 @@ export default function PlatformDonutCard({ districtName, categoryLabel, platfor
           </div>
         )}
 
-        {/* Chart */}
-        {!loading && !error && total > 0 && (
+        {/* Chart — her zaman görünür; veri yokken boş gri donut */}
+        {!loading && !error && (
           <>
             <div className="relative" style={{ height: 220 }}>
               <ResponsiveContainer width="100%" height="100%">
@@ -101,26 +105,24 @@ export default function PlatformDonutCard({ districtName, categoryLabel, platfor
                     paddingAngle={3}
                     dataKey="value"
                     labelLine={false}
-                    label={renderCustomLabel}
+                    label={total > 0 ? renderCustomLabel : undefined}
                   >
                     {data.map((entry, index) => (
                       <Cell key={`cell-${index}`} fill={entry.color} />
                     ))}
                   </Pie>
-                  <Tooltip content={<CustomTooltip />} />
+                  {total > 0 && <Tooltip content={<CustomTooltip />} />}
                 </PieChart>
               </ResponsiveContainer>
 
-              {/* Ortadaki toplam */}
               <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
                 <span className="text-2xl font-bold text-gray-800">{total.toLocaleString("tr-TR")}</span>
                 <span className="text-xs text-gray-500">Toplam</span>
               </div>
             </div>
 
-            {/* Legend listesi */}
             <ul className="mt-3 space-y-2">
-              {data.map((item) => (
+              {displayList.map((item) => (
                 <li key={item.name} className="flex items-center justify-between text-sm">
                   <div className="flex items-center gap-2">
                     <span
@@ -134,20 +136,13 @@ export default function PlatformDonutCard({ districtName, categoryLabel, platfor
                       {item.value.toLocaleString("tr-TR")}
                     </span>
                     <span className="text-gray-400 w-10 text-right">
-                      {total > 0 ? `${((item.value / total) * 100).toFixed(1)}%` : "—"}
+                      {total > 0 ? `${((item.value / total) * 100).toFixed(1)}%` : "0%"}
                     </span>
                   </div>
                 </li>
               ))}
             </ul>
           </>
-        )}
-
-        {/* Veri yok */}
-        {!loading && !error && total === 0 && (
-          <div className="flex justify-center items-center h-48 text-sm text-gray-400">
-            Veri bulunamadı.
-          </div>
         )}
       </div>
     </div>

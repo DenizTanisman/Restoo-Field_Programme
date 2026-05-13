@@ -8,6 +8,7 @@ from . import (
     case_studies,
     categories,
     districts,
+    metrics,
     platforms,
     restaurants,
     upload,
@@ -27,4 +28,5 @@ admin_router.include_router(restaurants.router)
 admin_router.include_router(case_studies.router)
 admin_router.include_router(applications.router)
 admin_router.include_router(analytics.router)
+admin_router.include_router(metrics.router)
 admin_router.include_router(upload.router)

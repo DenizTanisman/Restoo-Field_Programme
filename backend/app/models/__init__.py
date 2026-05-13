@@ -8,6 +8,7 @@ from .application import Application
 from .analytics import DistrictAnalytics, NeighborhoodAnalytics
 from .competitor import Competitor
 from .case_study import CaseStudy
+from .metrics import DistrictMetrics, NeighborhoodMetrics, SiteSettings
 
 __all__ = [
     "Base",
@@ -23,4 +24,7 @@ __all__ = [
     "NeighborhoodAnalytics",
     "Competitor",
     "CaseStudy",
+    "DistrictMetrics",
+    "NeighborhoodMetrics",
+    "SiteSettings",
 ]

@@ -44,7 +44,7 @@ export default function DashboardPage() {
     { label: "Restoran", value: stats.restaurants, icon: "🍽️" },
     { label: "Toplam Başvuru", value: stats.applications, icon: "🛵" },
     { label: "Bekleyen Başvuru", value: stats.pendingApplications, icon: "⏳" },
-    { label: "Case Study", value: stats.caseStudies, icon: "📚" },
+    { label: "Başarı Hikayesi", value: stats.caseStudies, icon: "📚" },
     { label: "Kategori", value: stats.categories, icon: "🏷️" },
     { label: "Platform", value: stats.platforms, icon: "📱" },
     { label: "İlçe", value: stats.districts, icon: "🗺️" },

@@ -97,6 +97,35 @@ CASE_STUDY_COLUMNS = [
     "created_at",
 ]
 
+# DistrictMetrics / NeighborhoodMetrics — JSON kolonları string olarak export edilir
+_METRICS_BASE_COLUMNS = [
+    "category_id",
+    "period_date",
+    "cancel_rate",
+    "return_rate",
+    "cancel_reasons",                    # JSON: [{"label","percent","color"}]
+    "return_reasons",                    # JSON
+    "area_performance_score",
+    "area_rating",
+    "highest_rating",
+    "lowest_rating",
+    "avg_basket",
+    "avg_menu_price",
+    "avg_monthly_revenue",
+    "courier_fee",
+    "hourly_heatmap",                    # JSON: number[7][24]
+    "negative_comment_total",
+    "negative_comment_rate",
+    "negative_avg_rating",
+    "platform_negative_distribution",    # JSON: [{"platform_id","percent"}]
+    "rating_distribution",               # JSON: [{"stars","percent","count"}]
+    "negative_word_cloud",               # JSON: [{"text","weight"}]
+    "courier_comparison",                # JSON: {"restaurant_courier":{...}, "own_courier":{...}}
+]
+
+DISTRICT_METRICS_COLUMNS = ["district_id", *_METRICS_BASE_COLUMNS]
+NEIGHBORHOOD_METRICS_COLUMNS = ["neighborhood_id", *_METRICS_BASE_COLUMNS]
+
 
 def rows_to_csv(rows: Iterable[dict], columns: list[str]) -> str:
     df = pd.DataFrame(list(rows), columns=columns)

@@ -27,6 +27,25 @@ export default function HomePage() {
   const [analyticsLoading, setAnalyticsLoading] = useState(false);
   const [analyticsError, setAnalyticsError] = useState(null);
   const [neighborhoodLoading, setNeighborhoodLoading] = useState(false);
+  const [neighborhoodWarning, setNeighborhoodWarning] = useState(null);
+
+  // Helper: bir mahalle analitiğinin tamamen boş olup olmadığını anlar
+  const isNeighborhoodEmpty = (data) => {
+    if (!data) return true;
+    const platformsEmpty = !data.platforms || data.platforms.length === 0
+      || data.platforms.every((p) => !p.customers);
+    const m = data.metrics || {};
+    const metricsEmpty = !m
+      || (
+        (!m.cancel_rate || Number(m.cancel_rate) === 0)
+        && (!m.return_rate || Number(m.return_rate) === 0)
+        && (!m.area_rating || Number(m.area_rating) === 0)
+        && (!m.area_performance_score || Number(m.area_performance_score) === 0)
+        && (!m.avg_basket || Number(m.avg_basket) === 0)
+        && (!m.negative_comment_total || Number(m.negative_comment_total) === 0)
+      );
+    return platformsEmpty && metricsEmpty;
+  };
 
   const fetchDistrictAnalytics = useCallback(async (districtId, districtName, districtSide, categoryId) => {
     setAnalyticsLoading(true);
@@ -40,10 +59,11 @@ export default function HomePage() {
         platforms: data.platforms,
         budget: data.budget,
         forecast: data.forecast,
+        metrics: data.metrics,
       });
     } catch (err) {
       setAnalyticsError(err.message);
-      setSelectedInfo({ id: districtId, name: districtName, side: districtSide, platforms: [], budget: {}, forecast: {} });
+      setSelectedInfo({ id: districtId, name: districtName, side: districtSide, platforms: [], budget: {}, forecast: {}, metrics: null });
     } finally {
       setAnalyticsLoading(false);
     }
@@ -51,6 +71,7 @@ export default function HomePage() {
 
   const fetchNeighborhoodAnalytics = useCallback(async (neighborhoodId, neighborhoodName, categoryId) => {
     setNeighborhoodLoading(true);
+    setNeighborhoodWarning(null);
     try {
       const data = await api.getNeighborhoodAnalytics(neighborhoodId, categoryId);
       setNeighborhoodInfo({
@@ -58,9 +79,14 @@ export default function HomePage() {
         platforms: data.platforms,
         budget: data.budget,
         forecast: data.forecast,
+        metrics: data.metrics,
       });
+      if (isNeighborhoodEmpty(data)) {
+        setNeighborhoodWarning(`"${neighborhoodName}" mahallesi hakkında veri girişi olmamıştır.`);
+      }
     } catch {
-      setNeighborhoodInfo({ name: neighborhoodName, platforms: [], budget: {}, forecast: {} });
+      setNeighborhoodInfo({ name: neighborhoodName, platforms: [], budget: {}, forecast: {}, metrics: null });
+      setNeighborhoodWarning(`"${neighborhoodName}" mahallesi hakkında veri girişi olmamıştır.`);
     } finally {
       setNeighborhoodLoading(false);
     }
@@ -74,10 +100,12 @@ export default function HomePage() {
       setSelectedInfo(null);
       setSelectedNeighborhood(null);
       setNeighborhoodInfo(null);
+      setNeighborhoodWarning(null);
     } else {
       setSelectedDistrict(id);
       setSelectedNeighborhood(null);
       setNeighborhoodInfo(null);
+      setNeighborhoodWarning(null);
       fetchDistrictAnalytics(id, name, side, selectedCategory?.id ?? null);
     }
   };
@@ -86,6 +114,7 @@ export default function HomePage() {
     if (!neighborhoodId) {
       setSelectedNeighborhood(null);
       setNeighborhoodInfo(null);
+      setNeighborhoodWarning(null);
       return;
     }
     // Eğer mahalle başka ilçeden seçildiyse, ilçeyi de senkronize et
@@ -136,11 +165,45 @@ export default function HomePage() {
     }
   };
 
-  const activeAnalytics = selectedNeighborhood && neighborhoodInfo
-    ? { name: neighborhoodInfo.name, categoryLabel: selectedCategory?.label, ...neighborhoodInfo }
-    : selectedInfo
-      ? { name: selectedInfo.name, categoryLabel: selectedCategory?.label, ...selectedInfo }
-      : null;
+  const EMPTY_METRICS = {
+    cancel_rate: 0,
+    return_rate: 0,
+    cancel_reasons: [],
+    return_reasons: [],
+    area_performance_score: 0,
+    area_rating: 0,
+    highest_rating: 0,
+    lowest_rating: 0,
+    avg_basket: 0,
+    avg_menu_price: 0,
+    avg_monthly_revenue: 0,
+    courier_fee: 0,
+    hourly_heatmap: [],
+    negative_comment_total: 0,
+    negative_comment_rate: 0,
+    negative_avg_rating: 0,
+    platform_negative_distribution: [],
+    rating_distribution: [],
+    negative_word_cloud: [],
+  };
+  const EMPTY_BUDGET = { adBudget: 0, campaignRate: 0, couponRate: 0, flashRate: 0, jokerRate: 0 };
+  const EMPTY_FORECAST = { daily: [], monthly: [], yearly: [] };
+
+  const activeAnalytics = (() => {
+    const base = selectedNeighborhood && neighborhoodInfo
+      ? { name: neighborhoodInfo.name, ...neighborhoodInfo }
+      : selectedInfo
+        ? { name: selectedInfo.name, ...selectedInfo }
+        : { name: null, platforms: [], budget: EMPTY_BUDGET, forecast: EMPTY_FORECAST, metrics: EMPTY_METRICS };
+    return {
+      categoryLabel: selectedCategory?.label,
+      ...base,
+      metrics: base.metrics || EMPTY_METRICS,
+      budget: base.budget || EMPTY_BUDGET,
+      forecast: base.forecast || EMPTY_FORECAST,
+      platforms: base.platforms || [],
+    };
+  })();
 
 
   return (
@@ -167,8 +230,20 @@ export default function HomePage() {
 
           <RestaurantCard restaurants={restaurants} />
 
-          {selectedInfo && (
-            <div className="mt-4 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 auto-rows-fr gap-4">
+          {neighborhoodWarning && !neighborhoodLoading && (
+            <div className="mt-4 alert alert-warning shadow-sm">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01M4.93 19.07A10 10 0 1119.07 4.93 10 10 0 014.93 19.07z" />
+              </svg>
+              <div>
+                <h4 className="font-semibold">Veri yok</h4>
+                <p className="text-sm opacity-80">{neighborhoodWarning} Admin panelinden bu mahalle için Metrics ve Analytics girişi yapın.</p>
+              </div>
+              <button className="btn btn-sm btn-ghost" onClick={() => setNeighborhoodWarning(null)}>Kapat</button>
+            </div>
+          )}
+
+          <div className="mt-4 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 auto-rows-fr gap-4">
               {/* 1 */}
               <div className="h-full md:order-1 xl:order-1">
                 <PlatformDonutCard
@@ -201,18 +276,28 @@ export default function HomePage() {
               </div>
               {/* 4 — 2-col modunda 5. konum, 3-col'da 4. konum */}
               <div className="h-full md:order-5 xl:order-4">
-                <RestaurantOperationalCard type="cancel" />
+                <RestaurantOperationalCard
+                  type="cancel"
+                  totalRate={activeAnalytics.metrics?.cancel_rate}
+                  reasons={activeAnalytics.metrics?.cancel_reasons}
+                />
               </div>
               {/* 5 — 2-col modunda 6. konum, 3-col'da 5. konum */}
               <div className="h-full md:order-6 xl:order-5">
-                <RestaurantOperationalCard type="return" />
+                <RestaurantOperationalCard
+                  type="return"
+                  totalRate={activeAnalytics.metrics?.return_rate}
+                  reasons={activeAnalytics.metrics?.return_reasons}
+                />
               </div>
               {/* 6 — 2-col modunda 4. konum (3 ile yan yana), 3-col'da 6. konum */}
               <div className="h-full md:order-4 xl:order-6">
-                <GeneralPerformanceScore myScore={null} areaScore={78} />
+                <GeneralPerformanceScore
+                  myScore={null}
+                  areaScore={activeAnalytics.metrics?.area_performance_score ?? 0}
+                />
               </div>
             </div>
-          )}
 
           <div className="border-t-2 border-dashed border-slate-300 my-10" />
 
@@ -220,6 +305,8 @@ export default function HomePage() {
             <Kiyaslama
               districtName={selectedInfo?.name}
               neighborhoodName={neighborhoodInfo?.name}
+              metrics={activeAnalytics?.metrics}
+              budget={activeAnalytics?.budget}
             />
           </div>
 
@@ -230,6 +317,7 @@ export default function HomePage() {
               districtId={selectedDistrict}
               neighborhoodId={selectedNeighborhood}
               neighborhoodName={neighborhoodInfo?.name}
+              metrics={activeAnalytics?.metrics}
             />
           </div>
         </div>

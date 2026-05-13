@@ -1,11 +1,26 @@
-const stats = [
-  { value: "340+", label: "Aktif Firma" },
-  { value: "%38", label: "Ortalama Churn Azalması" },
-  { value: "2.6x", label: "Ortalama ROI" },
-  { value: "90 Gün", label: "Ortalama Geri Ödeme Süresi" },
-];
+import { useEffect, useState } from "react";
+import { api } from "../api/client";
+
+const EMPTY_STATS = {
+  loyalty_active_firms: "",
+  loyalty_churn_reduction: "",
+  loyalty_avg_roi: "",
+  loyalty_payback_period: "",
+};
 
 export default function SadakatPage() {
+  const [settings, setSettings] = useState(EMPTY_STATS);
+  useEffect(() => {
+    api.getSiteSettings().then(setSettings).catch(() => setSettings(EMPTY_STATS));
+  }, []);
+
+  const stats = [
+    { value: settings.loyalty_active_firms || "—", label: "Aktif Firma" },
+    { value: settings.loyalty_churn_reduction || "—", label: "Ortalama Churn Azalması" },
+    { value: settings.loyalty_avg_roi || "—", label: "Ortalama ROI" },
+    { value: settings.loyalty_payback_period || "—", label: "Ortalama Geri Ödeme Süresi" },
+  ];
+
   return (
     <div className="bg-base-100 rounded-3xl overflow-hidden">
 

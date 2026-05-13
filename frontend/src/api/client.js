@@ -42,4 +42,15 @@ export const api = {
 
   // Categories
   getCategories: () => request("/categories"),
+
+  // Site Settings (loyalty stats etc.)
+  getSiteSettings: () => request("/analytics/site-settings"),
+
+  // Comments — cross-district summary
+  getCommentsByDistrict: (categoryId = null) => {
+    const params = new URLSearchParams();
+    if (categoryId) params.set("category_id", categoryId);
+    const qs = params.toString();
+    return request(`/analytics/comments/by-district${qs ? `?${qs}` : ""}`);
+  },
 };
