@@ -66,7 +66,7 @@ const RestaurantCaseStudy = () => {
           {/* ÖNCESİ — üstte */}
           <div className="flex flex-col gap-4">
             <h4 className="text-center font-bold text-gray-700 text-xl">Öncesi</h4>
-            <div className="rounded-3xl overflow-hidden h-72 shadow-md border border-gray-100">
+            <div className="rounded-3xl overflow-hidden h-[410px] shadow-md border border-gray-100">
               {story.before.image ? (
                 <img src={story.before.image} alt="Öncesi" className="w-full h-full object-cover object-center" />
               ) : (
@@ -113,7 +113,7 @@ const RestaurantCaseStudy = () => {
           {/* SONRASI — altta */}
           <div className="flex flex-col gap-4">
             <h4 className="text-center font-bold text-gray-700 text-xl">Sonrası</h4>
-            <div className="rounded-3xl overflow-hidden h-72 shadow-md border border-gray-100">
+            <div className="rounded-3xl overflow-hidden h-[410px] shadow-md border border-gray-100">
               {story.after.image ? (
                 <img src={story.after.image} alt="Sonrası" className="w-full h-full object-cover object-center" />
               ) : (
