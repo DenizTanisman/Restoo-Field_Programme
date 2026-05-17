@@ -3,7 +3,7 @@ from .admin_user import AdminUser
 from .district import District, Neighborhood
 from .category import Category
 from .platform import Platform
-from .restaurant import Restaurant, RestaurantPlatform
+from .restaurant import Restaurant, RestaurantAnalytics, RestaurantMetrics, RestaurantPlatform
 from .application import Application
 from .analytics import DistrictAnalytics, NeighborhoodAnalytics
 from .competitor import Competitor
@@ -19,6 +19,8 @@ __all__ = [
     "Platform",
     "Restaurant",
     "RestaurantPlatform",
+    "RestaurantMetrics",
+    "RestaurantAnalytics",
     "Application",
     "DistrictAnalytics",
     "NeighborhoodAnalytics",

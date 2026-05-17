@@ -75,15 +75,15 @@ export default function DistrictCard({
   const viewBox = selectedPath ? computeViewBox(selectedPath.d) : "0 0 100 100";
 
   return (
-    <div className="card bg-white shadow-md animate-[fadeIn_0.25s_ease] mb-6 text-gray-900">
+    <div className="card bg-base-100 shadow-md animate-[fadeIn_0.25s_ease] mb-6 text-base-content">
       <div className="card-body">
         {/* İlçe adı + mini harita */}
         <div className="flex items-center justify-center gap-8 mb-5">
           <div className="text-center">
-            <h2 className="text-4xl font-semibold text-gray-900">
+            <h2 className="text-4xl font-semibold text-base-content">
               {selectedInfo.name}
             </h2>
-            <p className="text-sm text-gray-500 mt-1">
+            <p className="text-sm text-base-content/60 mt-1">
               {sideLabel(selectedInfo.side)}
             </p>
           </div>
@@ -111,32 +111,32 @@ export default function DistrictCard({
           {selectedInfo.platforms.map((platform, i) => (
             <div
               key={platform.name}
-              className="bg-gray-50  rounded-xl p-4 
+              className="bg-base-200  rounded-xl p-4 
               flex flex-col items-center justify-center text-center shadow-sm
               w-full sm:w-[48%] md:w-[32%]"
             >
               <div className="flex items-center gap-2">
                 <div className="mb-2">{PLATFORM_ICONS[i]}</div>
 
-                <h3 className="text-lg font-semibold text-gray-700 mb-2">
+                <h3 className="text-lg font-semibold text-base-content mb-2">
                   {platform.name}
                 </h3>
               </div>
 
-              <div className="bg-blue-100 text-gray-700 text-sm px-4 py-1 rounded-md mb-4">
+              <div className="bg-blue-100 text-base-content text-sm px-4 py-1 rounded-md mb-4">
                 {platform.customers} Kullanıcı
               </div>
 
-              <div className="bg-blue-100 text-gray-700 text-sm px-4 py-1 rounded-md">
+              <div className="bg-blue-100 text-base-content text-sm px-4 py-1 rounded-md">
                 {platform.restaurants} Restoran
               </div>
             </div>
           ))}
-          <div className="w-full  border-gray-200 text-xs text-gray-600">
-            <span className="font-medium text-gray-800">
+          <div className="w-full  border-base-300 text-xs text-base-content/70">
+            <span className="font-medium text-base-content">
               Kullanıcı/Restoran Oranı:
             </span>
-            <span className="ml-1 text-gray-900 font-semibold">
+            <span className="ml-1 text-base-content font-semibold">
               144.7x
             </span>
           </div>

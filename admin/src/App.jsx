@@ -10,6 +10,7 @@ import CaseStudiesPage from "./pages/CaseStudiesPage";
 import ApplicationsPage from "./pages/ApplicationsPage";
 import AnalyticsPage from "./pages/AnalyticsPage";
 import MetricsPage from "./pages/MetricsPage";
+import DataEntryPage from "./pages/DataEntryPage";
 import CategoriesPage from "./pages/CategoriesPage";
 import PlatformsPage from "./pages/PlatformsPage";
 import DistrictsPage from "./pages/DistrictsPage";
@@ -32,6 +33,8 @@ export default function App() {
         <Route path="/restaurants" element={<RestaurantsPage />} />
         <Route path="/case-studies" element={<CaseStudiesPage />} />
         <Route path="/applications" element={<ApplicationsPage />} />
+        <Route path="/data-entry" element={<DataEntryPage />} />
+        {/* Eski sayfalar — direkt URL ile hâlâ erişilebilir (geri uyumluluk için) */}
         <Route path="/analytics" element={<AnalyticsPage />} />
         <Route path="/metrics" element={<MetricsPage />} />
         <Route path="/categories" element={<CategoriesPage />} />

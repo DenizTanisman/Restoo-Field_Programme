@@ -14,14 +14,17 @@ const METRICS = [
   { key: "jokerRate",      label: "Joker Katılımı",        unit: "%",  color: "#8b5cf6", icon: "🃏" },
 ];
 
+const fmtPercent = (n) =>
+  Number(n ?? 0).toLocaleString("tr-TR", { maximumFractionDigits: 1 });
+
 const CustomTooltip = ({ active, payload }) => {
   if (!active || !payload?.length) return null;
   const d = payload[0].payload;
   return (
-    <div className="bg-white border border-gray-200 rounded-lg px-3 py-2 shadow text-sm">
-      <p className="font-semibold text-gray-800">{d.label}</p>
-      <p className="text-gray-600">
-        {d.value.toLocaleString("tr-TR")}{d.unit}
+    <div className="bg-base-100 border border-base-300 rounded-lg px-3 py-2 shadow text-sm">
+      <p className="font-semibold text-base-content">{d.label}</p>
+      <p className="text-base-content/70">
+        {fmtPercent(d.value)}{d.unit}
       </p>
     </div>
   );
@@ -59,11 +62,11 @@ export default function BudgetAnalyticsCard({
       <div className="card-body p-5">
         {/* Başlık */}
         <div className="mb-3">
-          <h3 className="text-lg font-semibold text-gray-800">
+          <h3 className="text-lg font-semibold text-base-content">
             Kampanya & Katılım Analizleri
           </h3>
           {districtName && (
-            <p className="text-sm text-gray-500">
+            <p className="text-sm text-base-content/60">
               {districtName}{categoryLabel ? ` · ${categoryLabel}` : ""}
             </p>
           )}
@@ -129,12 +132,12 @@ export default function BudgetAnalyticsCard({
                     <span className="text-lg w-6 text-center">{m.icon}</span>
                     <div className="flex-1">
                       <div className="flex justify-between text-sm mb-0.5">
-                        <span className="text-gray-700 font-medium">{m.label}</span>
+                        <span className="text-base-content font-medium">{m.label}</span>
                         <span className="font-semibold" style={{ color: m.color }}>
-                          {val}%
+                          {fmtPercent(val)}%
                         </span>
                       </div>
-                      <div className="w-full bg-gray-100 rounded-full h-1.5">
+                      <div className="w-full bg-base-200 rounded-full h-1.5">
                         <div
                           className="h-1.5 rounded-full transition-all duration-500"
                           style={{ width: `${val}%`, backgroundColor: m.color }}

@@ -13,6 +13,7 @@ from app.routers import (
     case_studies,
     categories,
     districts,
+    platforms,
     restaurants,
 )
 from app.routers.admin import admin_router
@@ -35,6 +36,7 @@ app.add_middleware(
 app.include_router(auth.router)
 app.include_router(districts.router)
 app.include_router(categories.router)
+app.include_router(platforms.router)
 app.include_router(restaurants.router)
 app.include_router(analytics.router)
 app.include_router(case_studies.router)

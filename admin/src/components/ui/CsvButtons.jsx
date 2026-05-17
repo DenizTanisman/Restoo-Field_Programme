@@ -44,13 +44,28 @@ export function CsvImportButton({ onImport, label = "CSV İçe Aktar", accept = 
     setLoading(true);
     try {
       const result = await onImport(file);
-      const summary = result?.errors?.length
-        ? `${result.created || 0} eklendi, ${result.updated || 0} güncellendi, ${result.errors.length} hata`
-        : `${result.created || 0} eklendi, ${result.updated || 0} güncellendi`;
-      toast.push(summary, result?.errors?.length ? "warning" : "success");
-      if (result?.errors?.length) {
-        console.warn("CSV import errors:", result.errors);
-      }
+      const created = result?.created || 0;
+      const updated = result?.updated || 0;
+      const skipped = result?.skipped || 0;
+      const errs = result?.errors || [];
+      const warns = result?.warnings || [];
+
+      const parts = [];
+      if (created) parts.push(`${created} eklendi`);
+      if (updated) parts.push(`${updated} güncellendi`);
+      if (skipped) parts.push(`${skipped} satır atlandı`);
+      if (warns.length) parts.push(`${warns.length} uyarı`);
+      if (errs.length) parts.push(`${errs.length} hata`);
+      const summary = parts.length ? parts.join(" · ") : "Hiçbir kayıt işlenmedi";
+
+      // Tip belirleme: gerçek hata varsa warning, sadece warning/skipped varsa info, hiçbir şey yoksa info
+      let level = "success";
+      if (errs.length) level = "warning";
+      else if (created === 0 && updated === 0) level = "info";
+
+      toast.push(`CSV: ${summary}`, level);
+      if (warns.length) console.info("CSV warnings:", warns);
+      if (errs.length) console.warn("CSV errors:", errs);
     } catch (e) {
       toast.push(`İçe aktarma başarısız: ${e.message}`, "error");
     } finally {

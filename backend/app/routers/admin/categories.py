@@ -14,7 +14,7 @@ router = APIRouter(prefix="/categories", tags=["Admin Categories"])
 class CategoryInput(BaseModel):
     name: str = Field(min_length=1, max_length=100)
     emoji: str = Field(min_length=1, max_length=10)
-    sort_order: int = 0
+    sort_order: int = Field(default=0, ge=0, description="Sıra numarası, 0 veya pozitif olmalı")
     is_active: bool = True
 
 

@@ -24,7 +24,7 @@ function Gauge({ value, max = 5, color }) {
   return (
     <div className="relative w-32 h-20">
       <Doughnut data={data} options={options} />
-      <div className="absolute inset-0 flex items-end justify-center pb-1 font-bold text-2xl text-slate-800">
+      <div className="absolute inset-0 flex items-end justify-center pb-1 font-bold text-2xl text-base-content">
         {value === null || value === undefined ? "?" : value.toFixed(1)}
       </div>
     </div>
@@ -33,23 +33,23 @@ function Gauge({ value, max = 5, color }) {
 
 export default function CustomerRatingCompare({ myRating = null, areaRating = 4.2 }) {
   return (
-    <div className="rounded-xl bg-white p-6 shadow-sm h-full">
+    <div className="rounded-xl bg-base-100 p-6 shadow-sm h-full">
       <div className="mb-6 flex items-start gap-4">
         <span className="text-2xl">⭐</span>
         <div>
-          <h3 className="text-base font-semibold text-slate-900">Müşteri Puanı Kıyaslaması</h3>
-          <p className="text-sm text-slate-400">Senin puanın vs ilçe ortalaması</p>
+          <h3 className="text-base font-semibold text-base-content">Müşteri Puanı Kıyaslaması</h3>
+          <p className="text-sm text-base-content/50">Senin puanın vs ilçe ortalaması</p>
         </div>
       </div>
 
       <div className="flex justify-around items-center mt-4">
         <div className="text-center">
           <Gauge value={myRating} color="#ef4444" />
-          <p className="text-xs font-bold text-slate-500 mt-3 uppercase">Senin Puanın</p>
+          <p className="text-xs font-bold text-base-content/60 mt-3 uppercase">Senin Puanın</p>
         </div>
         <div className="text-center">
           <Gauge value={areaRating} color="#10b981" />
-          <p className="text-xs font-bold text-slate-500 mt-3 uppercase">İlçe Ortalaması</p>
+          <p className="text-xs font-bold text-base-content/60 mt-3 uppercase">İlçe Ortalaması</p>
         </div>
       </div>
     </div>

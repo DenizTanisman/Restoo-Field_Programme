@@ -1,10 +1,10 @@
-from fastapi import APIRouter, Depends, HTTPException, Query, Response
+from fastapi import APIRouter, Depends, HTTPException, Query, Response, status
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.database import get_db
 from app.models import Application
-from app.schemas.application import ApplicationSchema, ApplicationStatusUpdate
+from app.schemas.application import ApplicationCreate, ApplicationSchema, ApplicationStatusUpdate
 from app.services.csv_service import APPLICATION_COLUMNS, rows_to_csv
 
 from pydantic import BaseModel
@@ -40,6 +40,40 @@ async def list_applications(
     ).scalars().all()
 
     return ApplicationListResponse(total=total, page=page, limit=limit, data=rows)
+
+
+@router.post("", response_model=ApplicationSchema, status_code=status.HTTP_201_CREATED)
+async def create_application_admin(payload: ApplicationCreate, db: AsyncSession = Depends(get_db)):
+    app_row = Application(**payload.model_dump())
+    db.add(app_row)
+    await db.commit()
+    await db.refresh(app_row)
+    return app_row
+
+
+@router.patch("/{application_id}", response_model=ApplicationSchema)
+async def update_application(
+    application_id: int,
+    payload: ApplicationCreate,
+    db: AsyncSession = Depends(get_db),
+):
+    app_row = (await db.execute(select(Application).where(Application.id == application_id))).scalar_one_or_none()
+    if not app_row:
+        raise HTTPException(status_code=404, detail="Başvuru bulunamadı")
+    for k, v in payload.model_dump().items():
+        setattr(app_row, k, v)
+    await db.commit()
+    await db.refresh(app_row)
+    return app_row
+
+
+@router.delete("/{application_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_application(application_id: int, db: AsyncSession = Depends(get_db)):
+    app_row = (await db.execute(select(Application).where(Application.id == application_id))).scalar_one_or_none()
+    if not app_row:
+        raise HTTPException(status_code=404, detail="Başvuru bulunamadı")
+    await db.delete(app_row)
+    await db.commit()
 
 
 @router.patch("/{application_id}/status", response_model=ApplicationSchema)

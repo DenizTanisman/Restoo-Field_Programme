@@ -36,8 +36,8 @@ export default function NeighborhoodCard({ districtId, districtName, onSelect })
     <div className="card bg-base-100 shadow-md rounded-2xl">
       <div className="card-body p-5">
         <div className="mb-3">
-          <h3 className="text-lg font-semibold text-gray-800">Mahalle Seçimi</h3>
-          {districtName && <p className="text-sm text-gray-500">{districtName}</p>}
+          <h3 className="text-lg font-semibold text-base-content">Mahalle Seçimi</h3>
+          {districtName && <p className="text-sm text-base-content/60">{districtName}</p>}
         </div>
 
         {selected && (
@@ -64,7 +64,7 @@ export default function NeighborhoodCard({ districtId, districtName, onSelect })
               onChange={(e) => setSearch(e.target.value)}
               className="input input-bordered input-sm w-full pl-8 rounded-lg text-sm"
             />
-            <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400 text-sm">🔍</span>
+            <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-base-content/50 text-sm">🔍</span>
           </div>
         )}
 
@@ -73,7 +73,7 @@ export default function NeighborhoodCard({ districtId, districtName, onSelect })
             <span className="loading loading-spinner loading-md text-primary" />
           </div>
         ) : neighborhoods.length === 0 ? (
-          <p className="text-sm text-gray-400 text-center py-6">Bu ilçe için mahalle verisi bulunamadı.</p>
+          <p className="text-sm text-base-content/50 text-center py-6">Bu ilçe için mahalle verisi bulunamadı.</p>
         ) : (
           <div className="flex flex-wrap gap-2 max-h-52 overflow-y-auto pr-1">
             {filtered.map((n) => (
@@ -83,19 +83,19 @@ export default function NeighborhoodCard({ districtId, districtName, onSelect })
                 className={`px-3 py-1.5 rounded-lg text-sm font-medium border transition-all ${
                   selected?.id === n.id
                     ? "bg-primary text-primary-content border-primary shadow-sm"
-                    : "bg-gray-50 text-gray-700 border-gray-200 hover:bg-gray-100 hover:border-gray-300"
+                    : "bg-base-200 text-base-content border-base-300 hover:bg-base-200 hover:border-base-300"
                 }`}
               >
                 {n.name}
               </button>
             ))}
             {filtered.length === 0 && (
-              <p className="text-sm text-gray-400 w-full text-center py-4">Sonuç bulunamadı.</p>
+              <p className="text-sm text-base-content/50 w-full text-center py-4">Sonuç bulunamadı.</p>
             )}
           </div>
         )}
 
-        <p className="text-xs text-gray-400 mt-3">
+        <p className="text-xs text-base-content/50 mt-3">
           {neighborhoods.length} mahalle • {selected ? "1 seçili" : "Seçim yok"}
         </p>
       </div>

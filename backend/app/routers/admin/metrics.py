@@ -72,10 +72,27 @@ class NeighborhoodMetricsUpsert(MetricsBase):
 
 
 class SiteSettingsUpsert(BaseModel):
+    # Stats sayıları
     loyalty_active_firms: str = ""
     loyalty_churn_reduction: str = ""
     loyalty_avg_roi: str = ""
     loyalty_payback_period: str = ""
+    # Stats etiketleri
+    loyalty_stats_active_firms_label: str = ""
+    loyalty_stats_churn_label: str = ""
+    loyalty_stats_roi_label: str = ""
+    loyalty_stats_payback_label: str = ""
+    # Hero
+    loyalty_hero_bg_url: str = ""
+    loyalty_hero_badge: str = ""
+    loyalty_hero_title: str = ""
+    loyalty_hero_title_accent: str = ""
+    loyalty_hero_subtitle: str = ""
+    loyalty_hero_cta_text: str = ""
+    # Features
+    loyalty_features_title: str = ""
+    loyalty_features_subtitle: str = ""
+    loyalty_feature_cards: list[dict] = []
 
 
 # ============================== Helpers ==============================
@@ -346,90 +363,115 @@ def _record_to_values(row: dict, idx: int) -> dict[str, Any]:
 
 @router.post("/district/csv")
 async def import_district_metrics_csv(file: UploadFile = File(...), db: AsyncSession = Depends(get_db)):
-    records = await parse_csv_upload(file, DISTRICT_METRICS_COLUMNS)
-    created = updated = 0
+    records, warnings = await parse_csv_upload(file, DISTRICT_METRICS_COLUMNS)
+    created = updated = skipped = 0
+    errors: list[str] = []
     for idx, row in enumerate(records, start=2):
-        did = (row.get("district_id") or "").strip()
-        if not did:
-            raise HTTPException(400, f"satır {idx}: district_id zorunlu")
-        category_id = _parse_int(row.get("category_id", ""), "category_id", idx, allow_none=True)
-        period = _parse_date(row.get("period_date", ""), idx)
-        await _validate_refs(db, district_id=did, category_id=category_id)
+        try:
+            did = (row.get("district_id") or "").strip()
+            if not did:
+                raise HTTPException(400, f"satır {idx}: district_id zorunlu")
+            category_id = _parse_int(row.get("category_id", ""), "category_id", idx, allow_none=True)
+            period = _parse_date(row.get("period_date", ""), idx)
+            await _validate_refs(db, district_id=did, category_id=category_id)
 
-        existing = (
-            await db.execute(
-                select(DistrictMetrics).where(
-                    DistrictMetrics.district_id == did,
-                    DistrictMetrics.category_id.is_(None) if category_id is None
-                    else DistrictMetrics.category_id == category_id,
-                    DistrictMetrics.period_date == period,
+            existing = (
+                await db.execute(
+                    select(DistrictMetrics).where(
+                        DistrictMetrics.district_id == did,
+                        DistrictMetrics.category_id.is_(None) if category_id is None
+                        else DistrictMetrics.category_id == category_id,
+                        DistrictMetrics.period_date == period,
+                    )
                 )
-            )
-        ).scalar_one_or_none()
+            ).scalar_one_or_none()
 
-        values = _record_to_values(row, idx)
-        if existing:
-            for k, v in values.items():
-                setattr(existing, k, v)
-            updated += 1
-        else:
-            db.add(DistrictMetrics(district_id=did, category_id=category_id, period_date=period, **values))
-            created += 1
+            values = _record_to_values(row, idx)
+            if existing:
+                for k, v in values.items():
+                    setattr(existing, k, v)
+                updated += 1
+            else:
+                db.add(DistrictMetrics(district_id=did, category_id=category_id, period_date=period, **values))
+                created += 1
+        except HTTPException as exc:
+            errors.append(f"{exc.detail} — atlandı")
+            skipped += 1
+            continue
     await db.commit()
-    return {"created": created, "updated": updated}
+    return {
+        "created": created,
+        "updated": updated,
+        "skipped": skipped,
+        "warnings": warnings,
+        "errors": errors,
+    }
 
 
 @router.post("/neighborhood/csv")
 async def import_neighborhood_metrics_csv(file: UploadFile = File(...), db: AsyncSession = Depends(get_db)):
-    records = await parse_csv_upload(file, NEIGHBORHOOD_METRICS_COLUMNS)
-    created = updated = 0
+    records, warnings = await parse_csv_upload(file, NEIGHBORHOOD_METRICS_COLUMNS)
+    created = updated = skipped = 0
+    errors: list[str] = []
     for idx, row in enumerate(records, start=2):
-        nid = _parse_int(row.get("neighborhood_id", ""), "neighborhood_id", idx) or 0
-        category_id = _parse_int(row.get("category_id", ""), "category_id", idx, allow_none=True)
-        period = _parse_date(row.get("period_date", ""), idx)
-        await _validate_refs(db, neighborhood_id=nid, category_id=category_id)
+        try:
+            nid = _parse_int(row.get("neighborhood_id", ""), "neighborhood_id", idx) or 0
+            category_id = _parse_int(row.get("category_id", ""), "category_id", idx, allow_none=True)
+            period = _parse_date(row.get("period_date", ""), idx)
+            await _validate_refs(db, neighborhood_id=nid, category_id=category_id)
 
-        existing = (
-            await db.execute(
-                select(NeighborhoodMetrics).where(
-                    NeighborhoodMetrics.neighborhood_id == nid,
-                    NeighborhoodMetrics.category_id.is_(None) if category_id is None
-                    else NeighborhoodMetrics.category_id == category_id,
-                    NeighborhoodMetrics.period_date == period,
+            existing = (
+                await db.execute(
+                    select(NeighborhoodMetrics).where(
+                        NeighborhoodMetrics.neighborhood_id == nid,
+                        NeighborhoodMetrics.category_id.is_(None) if category_id is None
+                        else NeighborhoodMetrics.category_id == category_id,
+                        NeighborhoodMetrics.period_date == period,
+                    )
                 )
-            )
-        ).scalar_one_or_none()
+            ).scalar_one_or_none()
 
-        values = _record_to_values(row, idx)
-        if existing:
-            for k, v in values.items():
-                setattr(existing, k, v)
-            updated += 1
-        else:
-            db.add(NeighborhoodMetrics(neighborhood_id=nid, category_id=category_id, period_date=period, **values))
-            created += 1
+            values = _record_to_values(row, idx)
+            if existing:
+                for k, v in values.items():
+                    setattr(existing, k, v)
+                updated += 1
+            else:
+                db.add(NeighborhoodMetrics(neighborhood_id=nid, category_id=category_id, period_date=period, **values))
+                created += 1
+        except HTTPException as exc:
+            errors.append(f"{exc.detail} — atlandı")
+            skipped += 1
+            continue
     await db.commit()
-    return {"created": created, "updated": updated}
+    return {
+        "created": created,
+        "updated": updated,
+        "skipped": skipped,
+        "warnings": warnings,
+        "errors": errors,
+    }
 
 
 # ============================== Site Settings ==============================
+
+_LOYALTY_FIELDS = (
+    "loyalty_active_firms", "loyalty_churn_reduction", "loyalty_avg_roi", "loyalty_payback_period",
+    "loyalty_stats_active_firms_label", "loyalty_stats_churn_label", "loyalty_stats_roi_label", "loyalty_stats_payback_label",
+    "loyalty_hero_bg_url", "loyalty_hero_badge", "loyalty_hero_title", "loyalty_hero_title_accent",
+    "loyalty_hero_subtitle", "loyalty_hero_cta_text",
+    "loyalty_features_title", "loyalty_features_subtitle",
+)
+
 
 @router.get("/site-settings")
 async def get_site_settings_admin(db: AsyncSession = Depends(get_db)):
     row = (await db.execute(select(SiteSettings).where(SiteSettings.id == 1))).scalar_one_or_none()
     if not row:
-        return {
-            "loyalty_active_firms": "",
-            "loyalty_churn_reduction": "",
-            "loyalty_avg_roi": "",
-            "loyalty_payback_period": "",
-        }
-    return {
-        "loyalty_active_firms": row.loyalty_active_firms or "",
-        "loyalty_churn_reduction": row.loyalty_churn_reduction or "",
-        "loyalty_avg_roi": row.loyalty_avg_roi or "",
-        "loyalty_payback_period": row.loyalty_payback_period or "",
-    }
+        return {f: "" for f in _LOYALTY_FIELDS} | {"loyalty_feature_cards": []}
+    out = {f: (getattr(row, f, "") or "") for f in _LOYALTY_FIELDS}
+    out["loyalty_feature_cards"] = list(row.loyalty_feature_cards or [])
+    return out
 
 
 @router.post("/site-settings")

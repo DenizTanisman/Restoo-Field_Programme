@@ -81,7 +81,7 @@ export default function IstanbulMap({ onDistrictClick, selectedDistrict }) {
 
   return (
     <div ref={containerRef} style={{ position: "relative", width: "100%" }}>
-      <div className="absolute top-3 right-4 z-10 pointer-events-none flex items-center gap-3 bg-white/80 backdrop-blur px-4 py-2 rounded-lg shadow-md">
+      <div className="absolute top-3 right-4 z-10 pointer-events-none flex items-center gap-3 bg-base-100/80 backdrop-blur px-4 py-2 rounded-lg shadow-md">
         {selectedObj && (
           <svg
             viewBox={pathBBox(selectedObj.d)}
@@ -93,7 +93,7 @@ export default function IstanbulMap({ onDistrictClick, selectedDistrict }) {
             <path d={selectedObj.d} fill={selectedFill} stroke="white" strokeWidth="0.8" />
           </svg>
         )}
-        <span className="text-xl font-bold text-slate-800">
+        <span className="text-xl font-bold text-base-content">
           İstanbul{selectedName ? ` / ${selectedName}` : ""}
         </span>
       </div>

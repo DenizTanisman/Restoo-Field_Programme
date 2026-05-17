@@ -17,6 +17,7 @@ export const api = {
   getDistricts: () => request("/districts"),
   getDistrict: (id) => request(`/districts/${id}`),
   getDistrictNeighborhoods: (id) => request(`/districts/${id}/neighborhoods`),
+  getDataCoverage: () => request("/districts/data-coverage"),
 
   // Analytics
   getDistrictAnalytics: (districtId, categoryId = null) => {
@@ -33,7 +34,16 @@ export const api = {
   // Restaurants
   searchRestaurants: (query) =>
     request(`/restaurants/search?q=${encodeURIComponent(query)}`),
-  listRestaurants: () => request("/restaurants"),
+  getRestaurantDashboard: (restaurantId) =>
+    request(`/restaurants/${restaurantId}/dashboard`),
+  listRestaurants: ({ districtId = null, neighborhoodId = null, categoryId = null } = {}) => {
+    const params = new URLSearchParams();
+    if (districtId) params.set("district_id", districtId);
+    if (neighborhoodId !== null && neighborhoodId !== undefined) params.set("neighborhood_id", String(neighborhoodId));
+    if (categoryId) params.set("category_id", String(categoryId));
+    const qs = params.toString();
+    return request(`/restaurants${qs ? `?${qs}` : ""}`);
+  },
   createRestaurant: (data) =>
     request("/restaurants", { method: "POST", body: JSON.stringify(data) }),
 
@@ -42,6 +52,9 @@ export const api = {
 
   // Categories
   getCategories: () => request("/categories"),
+
+  // Platforms
+  getPlatforms: () => request("/platforms"),
 
   // Site Settings (loyalty stats etc.)
   getSiteSettings: () => request("/analytics/site-settings"),

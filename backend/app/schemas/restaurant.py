@@ -13,8 +13,12 @@ class RestaurantSchema(BaseModel):
     name: str
     district_id: str
     district_name: str
+    neighborhood_id: int | None = None
+    neighborhood_name: str | None = None
+    category_id: int
     category_label: str
     category_emoji: str
+    is_active: bool = True
     platforms: list[RestaurantPlatformSchema]
 
     model_config = {"from_attributes": True}

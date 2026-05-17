@@ -8,7 +8,7 @@ import AdminPage from "./pages/AdminPage";
 
 const App = () => {
   return (
-    <div className="bg-gray-200">
+    <div className="bg-base-300">
 
       <Routes>
         <Route path="/" element={<HomePage />} />

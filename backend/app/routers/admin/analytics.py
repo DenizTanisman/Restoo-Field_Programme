@@ -263,61 +263,74 @@ def _parse_date(v: str, row: int) -> date:
 
 @router.post("/district/csv")
 async def import_district_csv(file: UploadFile = File(...), db: AsyncSession = Depends(get_db)):
-    records = await parse_csv_upload(file, DISTRICT_ANALYTICS_COLUMNS)
+    records, warnings = await parse_csv_upload(file, DISTRICT_ANALYTICS_COLUMNS)
     created = 0
     updated = 0
+    skipped = 0
+    errors: list[str] = []
     for idx, row in enumerate(records, start=2):
-        did = (row.get("district_id") or "").strip()
-        if not did:
-            raise HTTPException(status_code=400, detail=f"satır {idx}: district_id zorunlu")
-        category_id = _parse_int(row.get("category_id", ""), "category_id", idx, allow_none=True)
-        platform_id = _parse_int(row.get("platform_id", ""), "platform_id", idx)
-        period = _parse_date(row.get("period_date", ""), idx)
+        try:
+            did = (row.get("district_id") or "").strip()
+            if not did:
+                raise HTTPException(status_code=400, detail=f"satır {idx}: district_id zorunlu")
+            category_id = _parse_int(row.get("category_id", ""), "category_id", idx, allow_none=True)
+            platform_id = _parse_int(row.get("platform_id", ""), "platform_id", idx)
+            period = _parse_date(row.get("period_date", ""), idx)
 
-        await _validate_common(db, district_id=did, category_id=category_id, platform_ids=[platform_id])
+            await _validate_common(db, district_id=did, category_id=category_id, platform_ids=[platform_id])
 
-        existing = (
-            await db.execute(
-                select(DistrictAnalytics).where(
-                    DistrictAnalytics.district_id == did,
-                    DistrictAnalytics.category_id.is_(None) if category_id is None
-                    else DistrictAnalytics.category_id == category_id,
-                    DistrictAnalytics.platform_id == platform_id,
-                    DistrictAnalytics.period_date == period,
+            existing = (
+                await db.execute(
+                    select(DistrictAnalytics).where(
+                        DistrictAnalytics.district_id == did,
+                        DistrictAnalytics.category_id.is_(None) if category_id is None
+                        else DistrictAnalytics.category_id == category_id,
+                        DistrictAnalytics.platform_id == platform_id,
+                        DistrictAnalytics.period_date == period,
+                    )
                 )
-            )
-        ).scalar_one_or_none()
+            ).scalar_one_or_none()
 
-        values = {
-            "customers": _parse_int(row.get("customers", "0") or "0", "customers", idx) or 0,
-            "ad_budget": _parse_float(row.get("ad_budget", "")),
-            "campaign_rate": _parse_float(row.get("campaign_rate", "")),
-            "coupon_rate": _parse_float(row.get("coupon_rate", "")),
-            "flash_rate": _parse_float(row.get("flash_rate", "")),
-            "joker_rate": _parse_float(row.get("joker_rate", "")),
-            "daily_forecast": _parse_float(row.get("daily_forecast", "")),
-            "monthly_forecast": _parse_float(row.get("monthly_forecast", "")),
-            "yearly_forecast": _parse_float(row.get("yearly_forecast", "")),
-        }
+            values = {
+                "customers": _parse_int(row.get("customers", "0") or "0", "customers", idx) or 0,
+                "ad_budget": _parse_float(row.get("ad_budget", "")),
+                "campaign_rate": _parse_float(row.get("campaign_rate", "")),
+                "coupon_rate": _parse_float(row.get("coupon_rate", "")),
+                "flash_rate": _parse_float(row.get("flash_rate", "")),
+                "joker_rate": _parse_float(row.get("joker_rate", "")),
+                "daily_forecast": _parse_float(row.get("daily_forecast", "")),
+                "monthly_forecast": _parse_float(row.get("monthly_forecast", "")),
+                "yearly_forecast": _parse_float(row.get("yearly_forecast", "")),
+            }
 
-        if existing:
-            for k, v in values.items():
-                setattr(existing, k, v)
-            updated += 1
-        else:
-            db.add(
-                DistrictAnalytics(
-                    district_id=did,
-                    category_id=category_id,
-                    platform_id=platform_id,
-                    period_date=period,
-                    **values,
+            if existing:
+                for k, v in values.items():
+                    setattr(existing, k, v)
+                updated += 1
+            else:
+                db.add(
+                    DistrictAnalytics(
+                        district_id=did,
+                        category_id=category_id,
+                        platform_id=platform_id,
+                        period_date=period,
+                        **values,
+                    )
                 )
-            )
-            created += 1
+                created += 1
+        except HTTPException as exc:
+            errors.append(f"{exc.detail} — atlandı")
+            skipped += 1
+            continue
 
     await db.commit()
-    return {"created": created, "updated": updated}
+    return {
+        "created": created,
+        "updated": updated,
+        "skipped": skipped,
+        "warnings": warnings,
+        "errors": errors,
+    }
 
 
 # ============================== Neighborhood ==============================
@@ -439,57 +452,70 @@ async def export_neighborhood_csv(db: AsyncSession = Depends(get_db)):
 
 @router.post("/neighborhood/csv")
 async def import_neighborhood_csv(file: UploadFile = File(...), db: AsyncSession = Depends(get_db)):
-    records = await parse_csv_upload(file, NEIGHBORHOOD_ANALYTICS_COLUMNS)
+    records, warnings = await parse_csv_upload(file, NEIGHBORHOOD_ANALYTICS_COLUMNS)
     created = 0
     updated = 0
+    skipped = 0
+    errors: list[str] = []
     for idx, row in enumerate(records, start=2):
-        nid = _parse_int(row.get("neighborhood_id", ""), "neighborhood_id", idx) or 0
-        category_id = _parse_int(row.get("category_id", ""), "category_id", idx, allow_none=True)
-        platform_id = _parse_int(row.get("platform_id", ""), "platform_id", idx)
-        period = _parse_date(row.get("period_date", ""), idx)
+        try:
+            nid = _parse_int(row.get("neighborhood_id", ""), "neighborhood_id", idx) or 0
+            category_id = _parse_int(row.get("category_id", ""), "category_id", idx, allow_none=True)
+            platform_id = _parse_int(row.get("platform_id", ""), "platform_id", idx)
+            period = _parse_date(row.get("period_date", ""), idx)
 
-        await _validate_common(db, neighborhood_id=nid, category_id=category_id, platform_ids=[platform_id])
+            await _validate_common(db, neighborhood_id=nid, category_id=category_id, platform_ids=[platform_id])
 
-        existing = (
-            await db.execute(
-                select(NeighborhoodAnalytics).where(
-                    NeighborhoodAnalytics.neighborhood_id == nid,
-                    NeighborhoodAnalytics.category_id.is_(None) if category_id is None
-                    else NeighborhoodAnalytics.category_id == category_id,
-                    NeighborhoodAnalytics.platform_id == platform_id,
-                    NeighborhoodAnalytics.period_date == period,
+            existing = (
+                await db.execute(
+                    select(NeighborhoodAnalytics).where(
+                        NeighborhoodAnalytics.neighborhood_id == nid,
+                        NeighborhoodAnalytics.category_id.is_(None) if category_id is None
+                        else NeighborhoodAnalytics.category_id == category_id,
+                        NeighborhoodAnalytics.platform_id == platform_id,
+                        NeighborhoodAnalytics.period_date == period,
+                    )
                 )
-            )
-        ).scalar_one_or_none()
+            ).scalar_one_or_none()
 
-        values = {
-            "customers": _parse_int(row.get("customers", "0") or "0", "customers", idx) or 0,
-            "ad_budget": _parse_float(row.get("ad_budget", "")),
-            "campaign_rate": _parse_float(row.get("campaign_rate", "")),
-            "coupon_rate": _parse_float(row.get("coupon_rate", "")),
-            "flash_rate": _parse_float(row.get("flash_rate", "")),
-            "joker_rate": _parse_float(row.get("joker_rate", "")),
-            "daily_forecast": _parse_float(row.get("daily_forecast", "")),
-            "monthly_forecast": _parse_float(row.get("monthly_forecast", "")),
-            "yearly_forecast": _parse_float(row.get("yearly_forecast", "")),
-        }
-        if existing:
-            for k, v in values.items():
-                setattr(existing, k, v)
-            updated += 1
-        else:
-            db.add(
-                NeighborhoodAnalytics(
-                    neighborhood_id=nid,
-                    category_id=category_id,
-                    platform_id=platform_id,
-                    period_date=period,
-                    **values,
+            values = {
+                "customers": _parse_int(row.get("customers", "0") or "0", "customers", idx) or 0,
+                "ad_budget": _parse_float(row.get("ad_budget", "")),
+                "campaign_rate": _parse_float(row.get("campaign_rate", "")),
+                "coupon_rate": _parse_float(row.get("coupon_rate", "")),
+                "flash_rate": _parse_float(row.get("flash_rate", "")),
+                "joker_rate": _parse_float(row.get("joker_rate", "")),
+                "daily_forecast": _parse_float(row.get("daily_forecast", "")),
+                "monthly_forecast": _parse_float(row.get("monthly_forecast", "")),
+                "yearly_forecast": _parse_float(row.get("yearly_forecast", "")),
+            }
+            if existing:
+                for k, v in values.items():
+                    setattr(existing, k, v)
+                updated += 1
+            else:
+                db.add(
+                    NeighborhoodAnalytics(
+                        neighborhood_id=nid,
+                        category_id=category_id,
+                        platform_id=platform_id,
+                        period_date=period,
+                        **values,
+                    )
                 )
-            )
-            created += 1
+                created += 1
+        except HTTPException as exc:
+            errors.append(f"{exc.detail} — atlandı")
+            skipped += 1
+            continue
     await db.commit()
-    return {"created": created, "updated": updated}
+    return {
+        "created": created,
+        "updated": updated,
+        "skipped": skipped,
+        "warnings": warnings,
+        "errors": errors,
+    }
 
 
 # ============================== Competitors ==============================
@@ -602,59 +628,72 @@ async def export_competitors_csv(db: AsyncSession = Depends(get_db)):
 
 @router.post("/competitors/csv")
 async def import_competitors_csv(file: UploadFile = File(...), db: AsyncSession = Depends(get_db)):
-    records = await parse_csv_upload(file, COMPETITOR_COLUMNS)
+    records, warnings = await parse_csv_upload(file, COMPETITOR_COLUMNS)
     created = 0
     updated = 0
+    skipped = 0
+    errors: list[str] = []
     for idx, row in enumerate(records, start=2):
-        did = (row.get("district_id") or "").strip()
-        if not did:
-            raise HTTPException(status_code=400, detail=f"satır {idx}: district_id zorunlu")
-        category_id = _parse_int(row.get("category_id", ""), "category_id", idx, allow_none=True)
-        platform_id = _parse_int(row.get("platform_id", ""), "platform_id", idx, allow_none=True)
-        period = _parse_date(row.get("period_date", ""), idx)
+        try:
+            did = (row.get("district_id") or "").strip()
+            if not did:
+                raise HTTPException(status_code=400, detail=f"satır {idx}: district_id zorunlu")
+            category_id = _parse_int(row.get("category_id", ""), "category_id", idx, allow_none=True)
+            platform_id = _parse_int(row.get("platform_id", ""), "platform_id", idx, allow_none=True)
+            period = _parse_date(row.get("period_date", ""), idx)
 
-        await _validate_common(
-            db,
-            district_id=did,
-            category_id=category_id,
-            platform_ids=[platform_id] if platform_id is not None else [],
-        )
-
-        existing = (
-            await db.execute(
-                select(Competitor).where(
-                    Competitor.district_id == did,
-                    Competitor.category_id.is_(None) if category_id is None
-                    else Competitor.category_id == category_id,
-                    Competitor.platform_id.is_(None) if platform_id is None
-                    else Competitor.platform_id == platform_id,
-                    Competitor.period_date == period,
-                )
+            await _validate_common(
+                db,
+                district_id=did,
+                category_id=category_id,
+                platform_ids=[platform_id] if platform_id is not None else [],
             )
-        ).scalar_one_or_none()
 
-        values = {
-            "min_basket": _parse_float(row.get("min_basket", "")),
-            "avg_rating": _parse_float(row.get("avg_rating", "")),
-            "monthly_revenue": _parse_float(row.get("monthly_revenue", "")),
-            "delivery_type": (row.get("delivery_type") or "platform").strip(),
-            "discount_rate": _parse_float(row.get("discount_rate", "")),
-            "coupon_rate": _parse_float(row.get("coupon_rate", "")),
-        }
-        if existing:
-            for k, v in values.items():
-                setattr(existing, k, v)
-            updated += 1
-        else:
-            db.add(
-                Competitor(
-                    district_id=did,
-                    category_id=category_id,
-                    platform_id=platform_id,
-                    period_date=period,
-                    **values,
+            existing = (
+                await db.execute(
+                    select(Competitor).where(
+                        Competitor.district_id == did,
+                        Competitor.category_id.is_(None) if category_id is None
+                        else Competitor.category_id == category_id,
+                        Competitor.platform_id.is_(None) if platform_id is None
+                        else Competitor.platform_id == platform_id,
+                        Competitor.period_date == period,
+                    )
                 )
-            )
-            created += 1
+            ).scalar_one_or_none()
+
+            values = {
+                "min_basket": _parse_float(row.get("min_basket", "")),
+                "avg_rating": _parse_float(row.get("avg_rating", "")),
+                "monthly_revenue": _parse_float(row.get("monthly_revenue", "")),
+                "delivery_type": (row.get("delivery_type") or "platform").strip(),
+                "discount_rate": _parse_float(row.get("discount_rate", "")),
+                "coupon_rate": _parse_float(row.get("coupon_rate", "")),
+            }
+            if existing:
+                for k, v in values.items():
+                    setattr(existing, k, v)
+                updated += 1
+            else:
+                db.add(
+                    Competitor(
+                        district_id=did,
+                        category_id=category_id,
+                        platform_id=platform_id,
+                        period_date=period,
+                        **values,
+                    )
+                )
+                created += 1
+        except HTTPException as exc:
+            errors.append(f"{exc.detail} — atlandı")
+            skipped += 1
+            continue
     await db.commit()
-    return {"created": created, "updated": updated}
+    return {
+        "created": created,
+        "updated": updated,
+        "skipped": skipped,
+        "warnings": warnings,
+        "errors": errors,
+    }

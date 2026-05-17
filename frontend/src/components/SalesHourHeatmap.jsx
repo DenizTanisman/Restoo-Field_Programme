@@ -13,10 +13,10 @@ const HOURS = Array.from({ length: 24 }, (_, i) => i);
  */
 export default function SalesHourHeatmap({ title, subtitle, data, colorRgb = "239, 68, 68" }) {
   return (
-    <div className="rounded-xl bg-white p-6 shadow-sm h-full">
+    <div className="rounded-xl bg-base-100 p-6 shadow-sm h-full">
       <div className="mb-4">
-        <h3 className="text-base font-semibold text-slate-900">{title}</h3>
-        {subtitle && <p className="text-sm text-slate-400">{subtitle}</p>}
+        <h3 className="text-base font-semibold text-base-content">{title}</h3>
+        {subtitle && <p className="text-sm text-base-content/50">{subtitle}</p>}
       </div>
 
       <div className="overflow-x-auto">
@@ -25,7 +25,7 @@ export default function SalesHourHeatmap({ title, subtitle, data, colorRgb = "23
           <div className="flex items-center mb-1">
             <div className="w-9 shrink-0" />
             {HOURS.map((h) => (
-              <div key={h} className="flex-1 text-[9px] text-slate-400 text-center min-w-[18px]">
+              <div key={h} className="flex-1 text-[9px] text-base-content/50 text-center min-w-[18px]">
                 {h % 6 === 0 ? `${h}` : ""}
               </div>
             ))}
@@ -34,7 +34,7 @@ export default function SalesHourHeatmap({ title, subtitle, data, colorRgb = "23
           {/* Günler */}
           {DAYS.map((day, dayIdx) => (
             <div key={day} className="flex items-center gap-0.5 my-0.5">
-              <div className="w-9 shrink-0 text-[11px] text-slate-500 font-medium">{day}</div>
+              <div className="w-9 shrink-0 text-[11px] text-base-content/60 font-medium">{day}</div>
               {HOURS.map((hour) => {
                 const raw = data?.[dayIdx]?.[hour];
                 const value = raw === null || raw === undefined ? 0 : Number(raw);
@@ -42,7 +42,7 @@ export default function SalesHourHeatmap({ title, subtitle, data, colorRgb = "23
                 return (
                   <div
                     key={hour}
-                    className="flex-1 min-w-[18px] h-6 rounded-sm bg-slate-100"
+                    className="flex-1 min-w-[18px] h-6 rounded-sm bg-base-200"
                     style={alpha > 0 ? { background: `rgba(${colorRgb}, ${alpha.toFixed(2)})` } : undefined}
                     title={`${day} ${hour}:00 — ${value}`}
                   />
@@ -52,7 +52,7 @@ export default function SalesHourHeatmap({ title, subtitle, data, colorRgb = "23
           ))}
 
           {/* Alt etiketler */}
-          <div className="flex justify-between mt-2 pl-10 text-[10px] text-slate-400">
+          <div className="flex justify-between mt-2 pl-10 text-[10px] text-base-content/50">
             <span>00:00</span>
             <span>06:00</span>
             <span>12:00</span>

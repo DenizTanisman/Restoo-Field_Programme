@@ -40,7 +40,18 @@ export async function request(path, { method = "GET", body, headers = {}, isForm
     let detail = `${res.status}`;
     try {
       const data = await res.json();
-      detail = data.detail || JSON.stringify(data);
+      if (Array.isArray(data.detail)) {
+        // Pydantic 422 validation: [{loc, msg, type, ...}]
+        detail = data.detail
+          .map((d) => {
+            const field = Array.isArray(d.loc) ? d.loc.filter((p) => p !== "body").join(".") : "";
+            const msg = String(d.msg || "").replace(/^Value error,\s*/i, "");
+            return field ? `${field}: ${msg}` : msg;
+          })
+          .join(" · ");
+      } else {
+        detail = data.detail || JSON.stringify(data);
+      }
     } catch {
       detail = (await res.text()) || detail;
     }

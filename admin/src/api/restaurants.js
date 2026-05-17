@@ -8,9 +8,14 @@ function qs(params) {
 
 export const restaurantsApi = {
   list: (params = {}) => request(`/admin/restaurants${qs(params)}`),
+  getDetail: (id) => request(`/admin/restaurants/${id}/detail`),
+  dataPresence: (params) => request(`/admin/restaurants/data-presence${qs(params)}`),
   create: (data) => request("/admin/restaurants", { method: "POST", body: data }),
   update: (id, data) => request(`/admin/restaurants/${id}`, { method: "PUT", body: data }),
   remove: (id) => request(`/admin/restaurants/${id}`, { method: "DELETE" }),
+  hardRemove: (id) => request(`/admin/restaurants/${id}?hard=true`, { method: "DELETE" }),
+  setActive: (id, isActive) =>
+    request(`/admin/restaurants/${id}/active`, { method: "PATCH", body: { is_active: isActive } }),
   exportCsv: () => requestBlob("/admin/restaurants/csv"),
   importCsv: async (file) => {
     const fd = new FormData();

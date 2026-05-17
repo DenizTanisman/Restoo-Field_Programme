@@ -19,7 +19,7 @@ const RATING_COLORS = {
   1: "bg-red-500",
 };
 
-const WORD_COLORS = ["text-red-500", "text-red-700", "text-purple-600", "text-orange-500", "text-gray-800", "text-gray-600", "text-amber-500"];
+const WORD_COLORS = ["text-red-500", "text-red-700", "text-purple-600", "text-orange-500", "text-base-content", "text-base-content/70", "text-amber-500"];
 
 function ThumbDownIcon({ className = "w-10 h-10" }) {
   return (
@@ -54,10 +54,10 @@ function StarOutlineIcon({ className = "w-10 h-10" }) {
 
 function MetricCard({ Icon, label, value, valueClass }) {
   return (
-    <div className="bg-white rounded-2xl px-5 py-4 flex items-center gap-4 shadow-sm border border-gray-100">
+    <div className="bg-base-100 rounded-2xl px-5 py-4 flex items-center gap-4 shadow-sm border border-base-300">
       <Icon className="w-12 h-12 shrink-0" />
       <div>
-        <p className="text-xs text-gray-400 mb-0.5">{label}</p>
+        <p className="text-xs text-base-content/50 mb-0.5">{label}</p>
         <p className={`text-3xl font-bold tracking-tight ${valueClass}`}>{value}</p>
       </div>
     </div>
@@ -66,25 +66,37 @@ function MetricCard({ Icon, label, value, valueClass }) {
 
 function PlatformChart({ rows }) {
   return (
-    <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
-      <h2 className="text-xs font-bold text-gray-600 mb-4">
+    <div className="bg-base-100 rounded-2xl p-5 shadow-sm border border-base-300">
+      <h2 className="text-xs font-bold text-base-content/70 mb-4">
         Platform Bazlı Olumsuz Yorum Dağılımı
       </h2>
       <div className="space-y-3">
-        {rows.length === 0 && <p className="text-xs italic text-slate-400">Veri yok — admin panelinden ekle</p>}
+        {rows.length === 0 && <p className="text-xs italic text-base-content/50">Veri yok — admin panelinden ekle</p>}
         {rows.map((p, idx) => {
           const pct = Math.max(0, Math.min(100, Number(p.percent) || 0));
+          const barColor = p.color_hex || null;
           return (
             <div key={`${p.label}-${idx}`} className="flex items-center gap-3">
-              <span className="w-8 h-8 rounded-full bg-slate-200 shrink-0 flex items-center justify-center text-[10px] font-bold text-slate-600">
-                {(p.label || "?").slice(0, 2).toUpperCase()}
-              </span>
-              <div className="flex-1 bg-gray-100 rounded-md h-8 overflow-hidden">
-                <div className={`${FALLBACK_PLATFORM_BG[p.label] || "bg-slate-400"} h-full rounded-md flex items-center pl-3`} style={{ width: `${pct}%` }}>
+              {p.logo_url ? (
+                <img
+                  src={p.logo_url}
+                  alt={p.label || ""}
+                  className="w-8 h-8 rounded-full object-cover bg-base-100 shrink-0 border border-base-300"
+                />
+              ) : (
+                <span className="w-8 h-8 rounded-full bg-base-300 shrink-0 flex items-center justify-center text-[10px] font-bold text-base-content/70">
+                  {(p.label || "?").slice(0, 2).toUpperCase()}
+                </span>
+              )}
+              <div className="flex-1 bg-base-200 rounded-md h-8 overflow-hidden">
+                <div
+                  className={barColor ? "h-full rounded-md flex items-center pl-3" : `${FALLBACK_PLATFORM_BG[p.label] || "bg-slate-400"} h-full rounded-md flex items-center pl-3`}
+                  style={{ width: `${pct}%`, ...(barColor ? { backgroundColor: barColor } : {}) }}
+                >
                   <span className="text-white text-xs font-semibold truncate">{p.label || "—"}</span>
                 </div>
               </div>
-              <span className="text-[10px] text-slate-500 w-10 text-right shrink-0">%{pct.toFixed(0)}</span>
+              <span className="text-[10px] text-base-content/60 w-10 text-right shrink-0">%{pct.toFixed(0)}</span>
             </div>
           );
         })}
@@ -105,20 +117,20 @@ function Stars({ count }) {
 
 function RatingChart({ rows }) {
   return (
-    <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
-      <h2 className="text-xs font-bold text-gray-600 mb-4">Puan Dağılımı</h2>
+    <div className="bg-base-100 rounded-2xl p-5 shadow-sm border border-base-300">
+      <h2 className="text-xs font-bold text-base-content/70 mb-4">Puan Dağılımı</h2>
       <div className="space-y-2.5">
         {rows.map((r) => {
           const pct = Math.max(0, Math.min(100, Number(r.percent) || 0));
           return (
             <div key={r.stars} className="flex items-center gap-2">
               <Stars count={r.stars} />
-              <div className="flex-1 bg-gray-100 rounded h-6 overflow-hidden">
+              <div className="flex-1 bg-base-200 rounded h-6 overflow-hidden">
                 <div className={`${RATING_COLORS[r.stars] || "bg-slate-400"} h-full rounded flex items-center pl-2`} style={{ width: `${pct}%` }}>
                   <span className="text-black text-[10px] font-bold">%{pct.toFixed(0)}</span>
                 </div>
               </div>
-              <span className="text-[10px] text-gray-400 w-28 text-right shrink-0">
+              <span className="text-[10px] text-base-content/50 w-28 text-right shrink-0">
                 {(Number(r.count) || 0).toLocaleString("tr-TR")} Değerlendirme
               </span>
             </div>
@@ -143,21 +155,21 @@ function riskBar(risk) {
 
 function DistrictRanking({ rows }) {
   return (
-    <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
-      <h2 className="text-xs font-bold text-gray-600 mb-4">İlçe Bazlı Olumsuz Yorum Oranı</h2>
-      {rows.length === 0 && <p className="text-xs italic text-slate-400">Henüz veri yok — admin panelinden metric ekle</p>}
+    <div className="bg-base-100 rounded-2xl p-5 shadow-sm border border-base-300">
+      <h2 className="text-xs font-bold text-base-content/70 mb-4">İlçe Bazlı Olumsuz Yorum Oranı</h2>
+      {rows.length === 0 && <p className="text-xs italic text-base-content/50">Henüz veri yok — admin panelinden metric ekle</p>}
       <div className="space-y-2">
         {rows.map((d) => {
           const pct = Math.max(0, Math.min(100, Number(d.percent) || 0));
           return (
             <div key={d.district_id} className="flex items-center gap-2">
-              <span className="text-[10px] text-gray-500 w-24 shrink-0 truncate">{d.district_name}</span>
-              <div className="flex-1 bg-gray-100 rounded h-5 overflow-hidden">
+              <span className="text-[10px] text-base-content/60 w-24 shrink-0 truncate">{d.district_name}</span>
+              <div className="flex-1 bg-base-200 rounded h-5 overflow-hidden">
                 <div className={`${riskBar(d.risk)} h-full rounded flex items-center pl-2`} style={{ width: `${pct}%` }}>
                   <span className="text-[9px] text-white font-bold">%{pct.toFixed(0)}</span>
                 </div>
               </div>
-              <span className="text-[9px] text-gray-400 w-16 text-right shrink-0">
+              <span className="text-[9px] text-base-content/50 w-16 text-right shrink-0">
                 {(Number(d.count) || 0).toLocaleString("tr-TR")} Yorum
               </span>
               <span className={`text-[8px] px-1.5 py-0.5 rounded font-bold whitespace-nowrap ${riskBadge(d.risk)}`}>
@@ -173,9 +185,9 @@ function DistrictRanking({ rows }) {
 
 function WordCloud({ words }) {
   return (
-    <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
-      <h2 className="text-xs font-bold text-gray-600 mb-4">En Çok Geçen Şikayet Kelimeleri</h2>
-      {words.length === 0 && <p className="text-xs italic text-slate-400">Kelime yok — admin panelinden ekle</p>}
+    <div className="bg-base-100 rounded-2xl p-5 shadow-sm border border-base-300">
+      <h2 className="text-xs font-bold text-base-content/70 mb-4">En Çok Geçen Şikayet Kelimeleri</h2>
+      {words.length === 0 && <p className="text-xs italic text-base-content/50">Kelime yok — admin panelinden ekle</p>}
       <div className="flex flex-wrap gap-x-4 gap-y-2 items-center">
         {words.map((w, idx) => {
           const weight = Math.max(0.5, Math.min(5, Number(w.weight) || 1));
@@ -205,6 +217,15 @@ export default function CommentAnalist({ districtId, neighborhoodId, neighborhoo
   const [selectedNeighborhoodId, setSelectedNeighborhoodId] = useState(neighborhoodId || "");
   const [neighborhoods, setNeighborhoods] = useState([]);
   const [districtRanking, setDistrictRanking] = useState([]);
+  const [platformsList, setPlatformsList] = useState([]); // {id, name, logo_url, color_hex}
+
+  useEffect(() => {
+    let alive = true;
+    api.getPlatforms()
+      .then((data) => { if (alive) setPlatformsList(data); })
+      .catch(() => alive && setPlatformsList([]));
+    return () => { alive = false; };
+  }, []);
 
   useEffect(() => {
     let alive = true;
@@ -249,24 +270,30 @@ export default function CommentAnalist({ districtId, neighborhoodId, neighborhoo
     : RATING_DEFAULTS;
   const words = Array.isArray(m.negative_word_cloud) ? m.negative_word_cloud : [];
 
-  // Platform rows için label resolution — admin'de id giriliyor, biz label görmek istiyoruz
-  const platformDisplayRows = platformRows.map((row) => ({
-    label: row.name || row.label || `Platform ${row.platform_id ?? ""}`,
-    percent: row.percent,
-  }));
+  // Platform rows için label/logo resolution — admin'de id giriliyor, biz logo + name görmek istiyoruz
+  const platformsById = Object.fromEntries(platformsList.map((p) => [p.id, p]));
+  const platformDisplayRows = platformRows.map((row) => {
+    const meta = platformsById[row.platform_id] || {};
+    return {
+      label: meta.name || row.name || row.label || `Platform ${row.platform_id ?? ""}`,
+      logo_url: meta.logo_url || null,
+      color_hex: meta.color_hex || null,
+      percent: row.percent,
+    };
+  });
 
   return (
     <div className="font-sans">
-      <div className="bg-white rounded-3xl shadow-lg overflow-hidden">
-        <div className="px-6 py-5 border-b border-gray-100">
-          <h1 className="text-2xl font-bold text-slate-900 text-center mb-4">
+      <div className="bg-base-100 rounded-3xl shadow-lg overflow-hidden">
+        <div className="px-6 py-5 border-b border-base-300">
+          <h1 className="text-2xl font-bold text-base-content text-center mb-4">
             Olumsuz Yorumlar Analiz Paneli (1 Ay)
           </h1>
           <div className="flex flex-wrap gap-2 justify-center">
             <select
               value={selectedDistrictId}
               onChange={handleDistrictChange}
-              className="text-sm border border-gray-200 rounded-lg px-3 py-1.5 bg-white text-gray-700 outline-none cursor-pointer"
+              className="text-sm border border-base-300 rounded-lg px-3 py-1.5 bg-base-100 text-base-content outline-none cursor-pointer"
             >
               <option value="">İlçe seç</option>
               {SORTED_DISTRICTS.map((d) => (
@@ -277,7 +304,7 @@ export default function CommentAnalist({ districtId, neighborhoodId, neighborhoo
               value={selectedNeighborhoodId}
               onChange={(e) => setSelectedNeighborhoodId(e.target.value)}
               disabled={!selectedDistrictId}
-              className="text-sm border border-gray-200 rounded-lg px-3 py-1.5 bg-white text-gray-700 outline-none cursor-pointer disabled:opacity-50"
+              className="text-sm border border-base-300 rounded-lg px-3 py-1.5 bg-base-100 text-base-content outline-none cursor-pointer disabled:opacity-50"
             >
               <option value="">Tüm mahalleler</option>
               {neighborhoods.map((n) => (
@@ -287,7 +314,7 @@ export default function CommentAnalist({ districtId, neighborhoodId, neighborhoo
           </div>
         </div>
 
-        <div className="p-5 space-y-4 bg-gray-50">
+        <div className="p-5 space-y-4 bg-base-200">
           <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3">
             <MetricCard Icon={ThumbDownIcon}  label="Toplam Olumsuz Yorum" value={total.toLocaleString("tr-TR")} valueClass="text-red-500" />
             <MetricCard Icon={TrendDownIcon}  label="Olumsuz Yorum Oranı"  value={`%${rate.toFixed(0)}`} valueClass="text-orange-500" />

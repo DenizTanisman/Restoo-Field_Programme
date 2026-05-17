@@ -8,7 +8,7 @@ from app.models import AdminUser
 from app.services.auth_service import decode_token
 
 
-_oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login", auto_error=False)
+_oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/token", auto_error=False)
 
 
 async def get_current_admin(

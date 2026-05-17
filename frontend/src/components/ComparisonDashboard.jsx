@@ -124,19 +124,19 @@ const ComparisonDashboard = () => {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-6">
-          <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+          <div className="bg-base-100 p-6 rounded-xl shadow-sm border border-base-300">
             <h3 className="text-[15px] font-semibold mb-4 text-[#374151]">Günlük Ortalama Sipariş</h3>
             <div className="h-[200px]"><Bar data={ordersData} options={commonOptions} /></div>
           </div>
           
           {/* GÜNCELLENEN KART: Ortalama Sipariş Tutarı */}
-          <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+          <div className="bg-base-100 p-6 rounded-xl shadow-sm border border-base-300">
             <h3 className="text-[15px] font-semibold mb-4 text-[#374151]">Ortalama Sipariş Tutarı</h3>
             <div className="h-[200px]"><Bar data={priceData} options={verticalBarOptions} /></div>
           </div>
         </div>
 
-        <div className="bg-white p-6 rounded-xl shadow-sm mb-6 border border-gray-100">
+        <div className="bg-base-100 p-6 rounded-xl shadow-sm mb-6 border border-base-300">
           <h3 className="text-[15px] font-semibold mb-4 text-[#374151]">Platform Bazlı Sipariş Dağılımı</h3>
           <div className="h-[130px]">
             <Bar data={platformData} options={{...commonOptions, scales: {y:{display:false}, x:{grid:{display:false}}}}} />
@@ -144,7 +144,7 @@ const ComparisonDashboard = () => {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-6">
-          <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+          <div className="bg-base-100 p-6 rounded-xl shadow-sm border border-base-300">
             <h3 className="text-[15px] font-semibold mb-4 text-[#374151]">Müşteri Puanı Kıyaslaması</h3>
             <div className="flex justify-around items-center">
               <div className="relative w-32 h-28 text-center">
@@ -159,7 +159,7 @@ const ComparisonDashboard = () => {
               </div>
             </div>
           </div>
-          <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+          <div className="bg-base-100 p-6 rounded-xl shadow-sm border border-base-300">
             <h3 className="text-[15px] font-semibold mb-4 text-[#374151]">Menü Büyüklüğü vs Sipariş</h3>
             <div className="h-[200px]">
               <Scatter 
@@ -175,7 +175,7 @@ const ComparisonDashboard = () => {
           </div>
         </div>
 
-        <div className="bg-white p-6 rounded-xl shadow-sm mb-6 border border-gray-100">
+        <div className="bg-base-100 p-6 rounded-xl shadow-sm mb-6 border border-base-300">
           <h3 className="text-[15px] font-semibold mb-2 text-[#374151]">Satış Saatleri Yoğunluğu (İlçe)</h3>
           <div className="grid grid-cols-24 gap-[3px] mt-4">
             {distHeatData.map((val, i) => (
@@ -191,7 +191,7 @@ const ComparisonDashboard = () => {
           </div>
         </div>
 
-        <div className="bg-white p-6 rounded-xl shadow-sm mb-6 border border-dashed border-[#cbd5e1]">
+        <div className="bg-base-100 p-6 rounded-xl shadow-sm mb-6 border border-dashed border-[#cbd5e1]">
           <h3 className="text-[15px] font-semibold mb-2 text-[#374151]">Satış Saatleri Yoğunluğu (Restoran)</h3>
           <div className="grid grid-cols-24 gap-[3px] mt-4">
             {[...Array(24)].map((_, i) => (
@@ -203,7 +203,7 @@ const ComparisonDashboard = () => {
           </div>
         </div>
 
-        <div className="bg-white p-6 rounded-xl shadow-sm mb-6 border border-gray-100">
+        <div className="bg-base-100 p-6 rounded-xl shadow-sm mb-6 border border-base-300">
           <h3 className="text-[15px] font-semibold mb-4 text-[#374151]">Yoğun Saatler</h3>
           <div className="h-[200px]">
             <Line 
@@ -214,10 +214,10 @@ const ComparisonDashboard = () => {
               options={commonOptions} 
             />
           </div>
-          <p className="text-xs text-slate-500 mt-3">*Akşam saatlerinde talep zirve yapıyor.</p>
+          <p className="text-xs text-base-content/60 mt-3">*Akşam saatlerinde talep zirve yapıyor.</p>
         </div>
 
-        <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+        <div className="bg-base-100 p-6 rounded-xl shadow-sm border border-base-300">
           <h3 className="text-[15px] font-semibold mb-4 text-[#374151] text-center">Genel Performans Skoru</h3>
           <div className="flex justify-center gap-12 md:gap-20">
             <div className="text-center">
@@ -241,15 +241,15 @@ const ComparisonDashboard = () => {
       {/* Veri Giriş Modalı */}
       {isModalOpen && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white p-8 rounded-xl w-full max-w-sm shadow-2xl">
+          <div className="bg-base-100 p-8 rounded-xl w-full max-w-sm shadow-2xl">
             <h3 className="text-lg font-bold mb-6">Analiz Veri Girişi</h3>
             <form onSubmit={(e) => { e.preventDefault(); setIsModalOpen(false); }}>
               <div className="mb-6">
                 <label className="block text-sm mb-2 font-medium">Günlük Sipariş</label>
-                <input type="number" className="w-full border border-gray-300 rounded-md p-2 outline-none focus:ring-2 focus:ring-blue-900" />
+                <input type="number" className="w-full border border-base-300 rounded-md p-2 outline-none focus:ring-2 focus:ring-blue-900" />
               </div>
               <div className="flex justify-end gap-3">
-                <button type="button" onClick={() => setIsModalOpen(false)} className="px-4 py-2 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors">İptal</button>
+                <button type="button" onClick={() => setIsModalOpen(false)} className="px-4 py-2 bg-base-200 rounded-md hover:bg-base-300 transition-colors">İptal</button>
                 <button type="submit" className="px-4 py-2 bg-[#1e3a8a] text-white rounded-md hover:bg-blue-800 transition-colors">Gönder</button>
               </div>
             </form>

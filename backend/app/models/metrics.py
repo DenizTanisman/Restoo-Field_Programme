@@ -110,15 +110,37 @@ class NeighborhoodMetrics(Base):
 
 
 class SiteSettings(Base):
-    """Anasayfada görünen global ayarlar (LoyaltyPage stat'ları gibi).
+    """Anasayfada görünen global ayarlar — özellikle Sadakat (Loyalty) sayfası.
     Tek satır olarak kullanılır (id=1)."""
     __tablename__ = "site_settings"
 
     id: Mapped[int] = mapped_column(primary_key=True)
 
+    # Stats sayıları
     loyalty_active_firms: Mapped[str] = mapped_column(String(50), default="")
     loyalty_churn_reduction: Mapped[str] = mapped_column(String(50), default="")
     loyalty_avg_roi: Mapped[str] = mapped_column(String(50), default="")
     loyalty_payback_period: Mapped[str] = mapped_column(String(50), default="")
+
+    # Stats etiketleri
+    loyalty_stats_active_firms_label: Mapped[str] = mapped_column(String(100), default="")
+    loyalty_stats_churn_label: Mapped[str] = mapped_column(String(100), default="")
+    loyalty_stats_roi_label: Mapped[str] = mapped_column(String(100), default="")
+    loyalty_stats_payback_label: Mapped[str] = mapped_column(String(100), default="")
+
+    # Hero
+    loyalty_hero_bg_url: Mapped[str] = mapped_column(String(500), default="")
+    loyalty_hero_badge: Mapped[str] = mapped_column(String(100), default="")
+    loyalty_hero_title: Mapped[str] = mapped_column(String(200), default="")
+    loyalty_hero_title_accent: Mapped[str] = mapped_column(String(200), default="")
+    loyalty_hero_subtitle: Mapped[str] = mapped_column(String(500), default="")
+    loyalty_hero_cta_text: Mapped[str] = mapped_column(String(100), default="")
+
+    # Features section header
+    loyalty_features_title: Mapped[str] = mapped_column(String(200), default="")
+    loyalty_features_subtitle: Mapped[str] = mapped_column(String(500), default="")
+
+    # 4 feature card: JSON list of {title, text, image_url}
+    loyalty_feature_cards: Mapped[list | None] = mapped_column(JSON, default=list, nullable=True)
 
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())

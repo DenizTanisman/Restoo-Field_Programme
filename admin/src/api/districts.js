@@ -2,6 +2,7 @@ import { request } from "./client";
 
 export const districtsApi = {
   list: () => request("/admin/districts"),
+  dataCoverage: () => request("/admin/districts/data-coverage"),
   create: (data) => request("/admin/districts", { method: "POST", body: data }),
   update: (id, data) => request(`/admin/districts/${id}`, { method: "PUT", body: data }),
   remove: (id) => request(`/admin/districts/${id}`, { method: "DELETE" }),

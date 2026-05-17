@@ -33,6 +33,9 @@ export const caseStudiesApi = {
   create: (data) => sendMultipart("/admin/case-studies", "POST", data),
   update: (id, data) => sendMultipart(`/admin/case-studies/${id}`, "PUT", data),
   remove: (id) => request(`/admin/case-studies/${id}`, { method: "DELETE" }),
+  hardRemove: (id) => request(`/admin/case-studies/${id}?hard=true`, { method: "DELETE" }),
+  setActive: (id, isActive) =>
+    request(`/admin/case-studies/${id}/active`, { method: "PATCH", body: { is_active: isActive } }),
   reorder: (items) =>
     request("/admin/case-studies/reorder", { method: "PATCH", body: items }),
   exportCsv: () => requestBlob("/admin/case-studies/csv"),

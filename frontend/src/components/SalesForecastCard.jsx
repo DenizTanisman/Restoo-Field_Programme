@@ -33,8 +33,8 @@ function resolveColor(name) {
 const CustomTooltip = ({ active, payload, label }) => {
   if (!active || !payload?.length) return null;
   return (
-    <div className="bg-white border border-gray-200 rounded-lg px-3 py-2 shadow text-sm">
-      <p className="font-semibold text-gray-800 mb-1">{label}</p>
+    <div className="bg-base-100 border border-base-300 rounded-lg px-3 py-2 shadow text-sm">
+      <p className="font-semibold text-base-content mb-1">{label}</p>
       {payload.map((p) => (
         <p key={p.dataKey} style={{ color: p.fill }} className="font-medium">
           {p.value.toLocaleString("tr-TR")} ₺
@@ -84,26 +84,26 @@ export default function SalesForecastCard({
       <div className="card-body p-5">
         {/* Başlık */}
         <div className="mb-3">
-          <h3 className="text-lg font-semibold text-gray-800">
+          <h3 className="text-lg font-semibold text-base-content">
             Tahmini Satış Verisi
           </h3>
           {districtName && (
-            <p className="text-sm text-gray-500">
+            <p className="text-sm text-base-content/60">
               {districtName}{categoryLabel ? ` · ${categoryLabel}` : ""}
             </p>
           )}
         </div>
 
         {/* Period seçici */}
-        <div className="flex gap-1 mb-4 bg-gray-100 rounded-xl p-1">
+        <div className="flex gap-1 mb-4 bg-base-200 rounded-xl p-1">
           {PERIODS.map((p) => (
             <button
               key={p.key}
               onClick={() => setPeriod(p.key)}
               className={`flex-1 py-1.5 rounded-lg text-sm font-medium transition-all ${
                 period === p.key
-                  ? "bg-white shadow text-gray-900"
-                  : "text-gray-500 hover:text-gray-700"
+                  ? "bg-base-100 shadow text-base-content"
+                  : "text-base-content/60 hover:text-base-content"
               }`}
             >
               {p.label}
@@ -174,9 +174,9 @@ export default function SalesForecastCard({
                       className="w-3 h-3 rounded-full flex-shrink-0"
                       style={{ backgroundColor: item.color }}
                     />
-                    <span className="text-gray-700">{item.name}</span>
+                    <span className="text-base-content">{item.name}</span>
                   </div>
-                  <span className="font-semibold text-gray-800">
+                  <span className="font-semibold text-base-content">
                     {item.amount.toLocaleString("tr-TR")} ₺
                   </span>
                 </li>

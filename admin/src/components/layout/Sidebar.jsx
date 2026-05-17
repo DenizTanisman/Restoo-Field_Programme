@@ -2,15 +2,14 @@ import { NavLink } from "react-router-dom";
 
 const links = [
   { to: "/dashboard", label: "Dashboard", icon: "📊" },
-  { to: "/analytics", label: "Analytics", icon: "📈" },
-  { to: "/metrics", label: "Metrics", icon: "🧭" },
+  { to: "/data-entry", label: "Veri Girişi", icon: "📝" },
   { to: "/restaurants", label: "Restaurants", icon: "🍽️" },
-  { to: "/case-studies", label: "Başarı Hikayeleri", icon: "📚" },
+  { to: "/case-studies", label: "Case Studies", icon: "📚" },
   { to: "/applications", label: "Applications", icon: "🛵" },
   { to: "/categories", label: "Categories", icon: "🏷️" },
   { to: "/platforms", label: "Platforms", icon: "📱" },
   { to: "/districts", label: "Districts", icon: "🗺️" },
-  { to: "/settings", label: "Settings", icon: "⚙️" },
+  { to: "/settings", label: "Sadakat", icon: "💎" },
 ];
 
 export default function Sidebar() {

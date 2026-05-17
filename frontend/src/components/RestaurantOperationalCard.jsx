@@ -33,9 +33,9 @@ export default function RestaurantOperationalCard({ type, totalRate, reasons }) 
         className="relative w-44 h-44 rounded-full flex items-center justify-center shadow-inner"
         style={{ background: makeConicGradient(items) }}
       >
-        <div className="absolute w-[72%] h-[72%] bg-white rounded-full flex flex-col items-center justify-center shadow-sm">
-          <span className="text-3xl font-extrabold text-gray-800">%{rate.toFixed(rate < 10 ? 1 : 0)}</span>
-          <span className="text-[10px] text-gray-400 font-bold uppercase tracking-tighter">
+        <div className="absolute w-[72%] h-[72%] bg-base-100 rounded-full flex flex-col items-center justify-center shadow-sm">
+          <span className="text-3xl font-extrabold text-base-content">%{rate.toFixed(rate < 10 ? 1 : 0)}</span>
+          <span className="text-[10px] text-base-content/50 font-bold uppercase tracking-tighter">
             {cfg.centerLabel}
           </span>
         </div>
@@ -46,7 +46,7 @@ export default function RestaurantOperationalCard({ type, totalRate, reasons }) 
   const Legend = (
     <div className="flex-1 flex flex-col justify-center gap-3 min-w-0">
       {items.length === 0 && (
-        <p className="text-xs text-slate-400 italic">Sebep verisi yok — admin panelinden ekle</p>
+        <p className="text-xs text-base-content/50 italic">Sebep verisi yok — admin panelinden ekle</p>
       )}
       {items.map((item, idx) => (
         <div key={`${item.label}-${idx}`} className="flex items-center justify-between gap-3">
@@ -55,9 +55,9 @@ export default function RestaurantOperationalCard({ type, totalRate, reasons }) 
               className="w-4 h-4 rounded-md shrink-0 shadow-sm"
               style={{ background: item.color || "#cbd5e1" }}
             />
-            <span className="text-gray-600 font-semibold text-sm truncate">{item.label || "—"}</span>
+            <span className="text-base-content/70 font-semibold text-sm truncate">{item.label || "—"}</span>
           </div>
-          <span className="text-gray-900 font-bold text-lg font-mono shrink-0">%{Number(item.percent) || 0}</span>
+          <span className="text-base-content font-bold text-lg font-mono shrink-0">%{Number(item.percent) || 0}</span>
         </div>
       ))}
     </div>
@@ -66,7 +66,7 @@ export default function RestaurantOperationalCard({ type, totalRate, reasons }) 
   return (
     <div className="card bg-base-100 shadow-md rounded-2xl h-full">
       <div className="card-body p-5">
-        <h3 className="text-xs font-bold text-gray-500 mb-6 uppercase tracking-wider">
+        <h3 className="text-xs font-bold text-base-content/60 mb-6 uppercase tracking-wider">
           {cfg.title}
         </h3>
         <div className={`flex flex-col items-center gap-6 2xl:items-center 2xl:gap-8 ${cfg.chartOnLeft ? "2xl:flex-row" : "2xl:flex-row-reverse"}`}>

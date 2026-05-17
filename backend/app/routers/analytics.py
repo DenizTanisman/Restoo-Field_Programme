@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, Query, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.orm import selectinload
 from app.database import get_db
 from app.models import (
@@ -11,6 +11,8 @@ from app.models import (
     Platform,
     DistrictMetrics,
     NeighborhoodMetrics,
+    Restaurant,
+    RestaurantPlatform,
     SiteSettings,
 )
 from app.schemas import (
@@ -78,16 +80,70 @@ async def _fetch_neighborhood_metrics(
     return _metrics_from_row(row)
 
 
-def _build_analytics_response(rows, platform_map: dict, restaurant_count_map: dict):
+async def _compute_platform_customers_from_restaurants(
+    db: AsyncSession,
+    *,
+    district_id: str | None = None,
+    neighborhood_id: int | None = None,
+    category_id: int | None = None,
+) -> dict[int, dict[str, int]]:
+    """Aktif restoranların platform müşteri sayılarını topla.
+    Return: {platform_id: {"customers": N, "restaurants": M}}
+    Bu, public dashboard'daki 'Platform Müşteri Dağılımı' kartının kaynağıdır —
+    böylece admin restoranlara müşteri girdiğinde rakamlar tutarlı kalır.
+    """
+    stmt = (
+        select(
+            RestaurantPlatform.platform_id,
+            func.sum(RestaurantPlatform.customers).label("total_customers"),
+            func.count(func.distinct(Restaurant.id)).label("restaurant_count"),
+        )
+        .join(Restaurant, RestaurantPlatform.restaurant_id == Restaurant.id)
+        .where(Restaurant.is_active == True)  # noqa: E712
+        .group_by(RestaurantPlatform.platform_id)
+    )
+    if district_id is not None:
+        stmt = stmt.where(Restaurant.district_id == district_id)
+    if neighborhood_id is not None:
+        stmt = stmt.where(Restaurant.neighborhood_id == neighborhood_id)
+    if category_id is not None:
+        stmt = stmt.where(Restaurant.category_id == category_id)
+    result = await db.execute(stmt)
+    out: dict[int, dict[str, int]] = {}
+    for row in result.all():
+        out[row.platform_id] = {
+            "customers": int(row.total_customers or 0),
+            "restaurants": int(row.restaurant_count or 0),
+        }
+    return out
+
+
+def _build_analytics_response(
+    rows,
+    platform_map: dict,
+    platform_customers_map: dict[int, dict[str, int]],
+):
+    """Budget + forecast = analytics tablosundan; customers = restoranlardan."""
     platforms = []
     budget_acc = {"adBudget": 0, "campaignRate": 0, "couponRate": 0, "flashRate": 0, "jokerRate": 0}
     forecast_daily, forecast_monthly, forecast_yearly = [], [], []
     count = len(rows)
 
+    # Hangi platformların gösterileceğini hem analytics rows hem restaurant aggregates'ten al
+    platform_ids_seen: set[int] = set()
+    for row in rows:
+        platform_ids_seen.add(row.platform_id)
+    platform_ids_seen.update(platform_customers_map.keys())
+
+    # Platform Müşteri Dağılımı: restoranlardan summed (sıra: platform_map order)
+    for pid in sorted(platform_ids_seen):
+        pname = platform_map.get(pid, f"Platform {pid}")
+        info = platform_customers_map.get(pid, {"customers": 0, "restaurants": 0})
+        platforms.append(PlatformCustomers(name=pname, customers=info["customers"], restaurants=info["restaurants"]))
+
+    # Budget + forecast: analytics rows'tan aggregate
     for row in rows:
         pname = platform_map.get(row.platform_id, f"Platform {row.platform_id}")
-        r_count = restaurant_count_map.get(row.platform_id, 0)
-        platforms.append(PlatformCustomers(name=pname, customers=row.customers, restaurants=r_count))
         budget_acc["adBudget"] += float(row.ad_budget)
         budget_acc["campaignRate"] += float(row.campaign_rate)
         budget_acc["couponRate"] += float(row.coupon_rate)
@@ -130,7 +186,10 @@ async def district_analytics(
     platforms_result = await db.execute(select(Platform).where(Platform.is_active == True))
     platform_map = {p.id: p.name for p in platforms_result.scalars().all()}
 
-    budget, forecast, platforms = _build_analytics_response(rows, platform_map, {})
+    customers_map = await _compute_platform_customers_from_restaurants(
+        db, district_id=district_id, category_id=category_id,
+    )
+    budget, forecast, platforms = _build_analytics_response(rows, platform_map, customers_map)
     metrics = await _fetch_district_metrics(db, district_id, category_id)
 
     return DistrictAnalyticsResponse(
@@ -141,6 +200,24 @@ async def district_analytics(
         budget=budget,
         forecast=forecast,
         metrics=metrics,
+    )
+
+
+def _metrics_is_empty(m: MetricsData) -> bool:
+    """Metrics objesi tamamen boş mu? Fallback için kullanılır."""
+    return (
+        not m.cancel_rate
+        and not m.return_rate
+        and not m.cancel_reasons
+        and not m.return_reasons
+        and not m.area_performance_score
+        and not m.area_rating
+        and not m.avg_basket
+        and not m.avg_monthly_revenue
+        and not m.hourly_heatmap
+        and not m.negative_comment_total
+        and not m.rating_distribution
+        and not m.courier_comparison
     )
 
 
@@ -166,8 +243,37 @@ async def neighborhood_analytics(
     platforms_result = await db.execute(select(Platform).where(Platform.is_active == True))
     platform_map = {p.id: p.name for p in platforms_result.scalars().all()}
 
-    budget, forecast, platforms = _build_analytics_response(rows, platform_map, {})
+    analytics_source = "neighborhood"
+    if not rows:
+        # Fallback: bu mahalle için analytics yok → ilçe analytics'inden çek
+        d_stmt = select(DistrictAnalytics).where(DistrictAnalytics.district_id == neighborhood.district_id)
+        if category_id is not None:
+            d_stmt = d_stmt.where(DistrictAnalytics.category_id == category_id)
+        else:
+            d_stmt = d_stmt.where(DistrictAnalytics.category_id == None)  # noqa: E711
+        rows = (await db.execute(d_stmt)).scalars().all()
+        if rows:
+            analytics_source = "district_fallback"
+        else:
+            analytics_source = "none"
+
+    # Customers HER ZAMAN seçilen mahalledeki restoranlardan summed.
+    # (Budget/forecast fallback'e düşse bile customer dağılımı bu mahalleye özel.)
+    customers_map = await _compute_platform_customers_from_restaurants(
+        db, neighborhood_id=neighborhood_id, category_id=category_id,
+    )
+    budget, forecast, platforms = _build_analytics_response(rows, platform_map, customers_map)
+
     metrics = await _fetch_neighborhood_metrics(db, neighborhood_id, category_id)
+    metrics_source = "neighborhood"
+    if _metrics_is_empty(metrics):
+        # Fallback: bu mahalle için metrics yok → ilçe metrics'inden çek
+        d_metrics = await _fetch_district_metrics(db, neighborhood.district_id, category_id)
+        if not _metrics_is_empty(d_metrics):
+            metrics = d_metrics
+            metrics_source = "district_fallback"
+        else:
+            metrics_source = "none"
 
     return NeighborhoodAnalyticsResponse(
         neighborhood_id=neighborhood_id,
@@ -177,6 +283,8 @@ async def neighborhood_analytics(
         budget=budget,
         forecast=forecast,
         metrics=metrics,
+        analytics_source=analytics_source,
+        metrics_source=metrics_source,
     )
 
 
@@ -226,4 +334,17 @@ async def get_site_settings(db: AsyncSession = Depends(get_db)):
         loyalty_churn_reduction=row.loyalty_churn_reduction or "",
         loyalty_avg_roi=row.loyalty_avg_roi or "",
         loyalty_payback_period=row.loyalty_payback_period or "",
+        loyalty_stats_active_firms_label=row.loyalty_stats_active_firms_label or "",
+        loyalty_stats_churn_label=row.loyalty_stats_churn_label or "",
+        loyalty_stats_roi_label=row.loyalty_stats_roi_label or "",
+        loyalty_stats_payback_label=row.loyalty_stats_payback_label or "",
+        loyalty_hero_bg_url=row.loyalty_hero_bg_url or "",
+        loyalty_hero_badge=row.loyalty_hero_badge or "",
+        loyalty_hero_title=row.loyalty_hero_title or "",
+        loyalty_hero_title_accent=row.loyalty_hero_title_accent or "",
+        loyalty_hero_subtitle=row.loyalty_hero_subtitle or "",
+        loyalty_hero_cta_text=row.loyalty_hero_cta_text or "",
+        loyalty_features_title=row.loyalty_features_title or "",
+        loyalty_features_subtitle=row.loyalty_features_subtitle or "",
+        loyalty_feature_cards=list(row.loyalty_feature_cards or []),
     )

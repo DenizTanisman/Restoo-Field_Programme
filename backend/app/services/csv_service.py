@@ -15,6 +15,7 @@ from fastapi import HTTPException, UploadFile
 RESTAURANT_COLUMNS = [
     "name",
     "district_id",
+    "neighborhood_id",  # opsiyonel, boş bırakılırsa mahallesiz kayıt
     "category_id",
     "is_active",
     "platforms",  # JSON-encoded "[{\"platform_id\":1,\"customers\":120}]" veya boş
@@ -132,7 +133,17 @@ def rows_to_csv(rows: Iterable[dict], columns: list[str]) -> str:
     return df.to_csv(index=False)
 
 
-async def parse_csv_upload(file: UploadFile, required_columns: list[str]) -> list[dict]:
+async def parse_csv_upload(
+    file: UploadFile,
+    expected_columns: list[str],
+) -> tuple[list[dict], list[str]]:
+    """Tolerant CSV parser.
+
+    - Missing columns: silently filled with "" for every row (caller decides
+      whether the field is required at row level).
+    - Empty rows (all cells blank): skipped, reported in the warnings list.
+    - Returns (records, warnings). Caller appends its own row-level errors.
+    """
     raw = await file.read()
     if not raw:
         raise HTTPException(status_code=400, detail="CSV dosyası boş")
@@ -141,11 +152,22 @@ async def parse_csv_upload(file: UploadFile, required_columns: list[str]) -> lis
     except Exception as exc:  # noqa: BLE001
         raise HTTPException(status_code=400, detail=f"CSV okunamadı: {exc}")
 
-    missing = [c for c in required_columns if c not in df.columns]
-    if missing:
-        raise HTTPException(
-            status_code=400,
-            detail=f"Eksik sütun: {', '.join(missing)}. Beklenen: {', '.join(required_columns)}",
-        )
+    warnings: list[str] = []
 
-    return df.to_dict(orient="records")
+    missing = [c for c in expected_columns if c not in df.columns]
+    if missing:
+        warnings.append(
+            f"Eksik sütunlar boş kabul edildi: {', '.join(missing)}"
+        )
+        for col in missing:
+            df[col] = ""
+
+    records: list[dict] = []
+    for idx, raw_row in enumerate(df.to_dict(orient="records"), start=2):
+        row = {k: ("" if v is None else str(v).strip()) for k, v in raw_row.items()}
+        if not any(row.get(c, "") for c in expected_columns):
+            warnings.append(f"satır {idx}: tamamen boş, atlandı")
+            continue
+        records.append(row)
+
+    return records, warnings

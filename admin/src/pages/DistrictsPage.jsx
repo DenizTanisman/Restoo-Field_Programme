@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { districtsApi } from "../api/districts";
 import DataTable from "../components/ui/DataTable";
 import FormModal from "../components/ui/FormModal";
@@ -20,6 +20,12 @@ export default function DistrictsPage() {
   const [neighborhoods, setNeighborhoods] = useState([]);
   const [neighLoading, setNeighLoading] = useState(false);
   const [newNeigh, setNewNeigh] = useState("");
+  const neighRef = useRef(null);
+
+  // Veri-girilen-ilçe/mahalle filtresi (toggle)
+  const [coverageOnly, setCoverageOnly] = useState(false);
+  const [coverage, setCoverage] = useState(null); // null = henüz yüklenmedi, {} = boş
+  const [coverageLoading, setCoverageLoading] = useState(false);
 
   const load = async () => {
     setLoading(true);
@@ -30,6 +36,36 @@ export default function DistrictsPage() {
     }
   };
   useEffect(() => { load(); }, []);
+
+  const loadCoverage = async () => {
+    setCoverageLoading(true);
+    try {
+      const res = await districtsApi.dataCoverage();
+      setCoverage(res.district_neighborhoods || {});
+    } catch (err) {
+      toast.push(err.message, "error");
+      setCoverage({});
+    } finally {
+      setCoverageLoading(false);
+    }
+  };
+
+  const toggleCoverage = async () => {
+    if (!coverageOnly && coverage === null) {
+      await loadCoverage();
+    }
+    setCoverageOnly((v) => !v);
+  };
+
+  // Filtre uygulanmış görünür satırlar
+  const visibleRows = coverageOnly && coverage
+    ? rows.filter((d) => (coverage[d.id]?.length ?? 0) > 0)
+    : rows;
+
+  // Açılan ilçe için filtreli mahalleler
+  const visibleNeighborhoods = coverageOnly && coverage && expanded
+    ? neighborhoods.filter((n) => coverage[expanded]?.includes(n.id))
+    : neighborhoods;
 
   const openNew = () => { setForm(EMPTY); setEditing("new"); };
   const openEdit = (r) => {
@@ -78,7 +114,7 @@ export default function DistrictsPage() {
     setNeighborhoods([]);
   };
 
-  // Açılan ilçenin mahallelerini fetch et
+  // Açılan ilçenin mahallelerini fetch et + smooth scroll
   useEffect(() => {
     if (!expanded) return;
     let alive = true;
@@ -92,15 +128,25 @@ export default function DistrictsPage() {
         if (alive) toast.push(err.message, "error");
       })
       .finally(() => {
-        if (alive) setNeighLoading(false);
+        if (alive) {
+          setNeighLoading(false);
+          requestAnimationFrame(() => {
+            neighRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+          });
+        }
       });
     return () => { alive = false; };
   }, [expanded]);
 
   const addNeighborhood = async () => {
-    if (!newNeigh.trim()) return;
+    const name = newNeigh.trim();
+    if (!name) return;
+    if (name.length > 50) {
+      toast.push("Mahalle adı en fazla 50 karakter olabilir", "error");
+      return;
+    }
     try {
-      await districtsApi.createNeighborhood(expanded, { name: newNeigh.trim(), is_active: true });
+      await districtsApi.createNeighborhood(expanded, { name, is_active: true });
       setNewNeigh("");
       setNeighborhoods(await districtsApi.listNeighborhoods(expanded));
     } catch (err) {
@@ -122,7 +168,22 @@ export default function DistrictsPage() {
       <div className="card-body">
         <div className="flex justify-between items-center mb-4">
           <h2 className="card-title">İlçeler</h2>
-          <button className="btn btn-sm btn-primary" onClick={openNew}>+ Yeni İlçe</button>
+          <div className="flex gap-2 items-center">
+            <button
+              type="button"
+              onClick={toggleCoverage}
+              disabled={coverageLoading}
+              className={`btn btn-sm ${coverageOnly ? "btn-primary" : "btn-outline"}`}
+              title="Sadece NeighborhoodMetrics veya NeighborhoodAnalytics tablosunda kaydı olan ilçe/mahalleleri göster"
+            >
+              {coverageLoading
+                ? "Yükleniyor…"
+                : coverageOnly
+                  ? "✓ Sadece veri girilenler"
+                  : "Sadece veri girilenler"}
+            </button>
+            <button className="btn btn-sm btn-primary" onClick={openNew}>+ Yeni İlçe</button>
+          </div>
         </div>
         {loading ? <span className="loading loading-spinner" /> : (
           <DataTable
@@ -133,11 +194,19 @@ export default function DistrictsPage() {
               {
                 key: "neighborhoods",
                 label: "Mahalleler",
-                render: (r) => (
-                  <button className="btn btn-xs btn-ghost" onClick={() => expand(r.id)}>
-                    {expanded === r.id ? "Kapat" : "Göster"}
-                  </button>
-                ),
+                render: (r) => {
+                  const dataCount = coverageOnly && coverage ? (coverage[r.id]?.length ?? 0) : null;
+                  return (
+                    <div className="flex items-center gap-2">
+                      <button className="btn btn-xs btn-ghost" onClick={() => expand(r.id)}>
+                        {expanded === r.id ? "Kapat" : "Göster"}
+                      </button>
+                      {dataCount !== null && (
+                        <span className="badge badge-sm badge-success">{dataCount} verili</span>
+                      )}
+                    </div>
+                  );
+                },
               },
               {
                 key: "actions",
@@ -150,32 +219,41 @@ export default function DistrictsPage() {
                 ),
               },
             ]}
-            data={rows}
+            data={visibleRows}
           />
         )}
 
         {expanded && (
-          <div className="mt-4 p-4 bg-base-200 rounded">
+          <div ref={neighRef} className="mt-4 p-4 bg-base-200 rounded scroll-mt-4">
             <h3 className="font-semibold mb-2">{expanded} — Mahalleler</h3>
-            <div className="flex gap-2 mb-3">
+            <div className="flex gap-2 mb-1">
               <input
                 className="input input-bordered input-sm flex-1"
                 placeholder="Yeni mahalle adı"
                 value={newNeigh}
                 onChange={(e) => setNewNeigh(e.target.value)}
+                onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); addNeighborhood(); } }}
+                maxLength={50}
               />
               <button className="btn btn-sm btn-primary" onClick={addNeighborhood}>Ekle</button>
+            </div>
+            <div className="text-xs text-base-content/60 mb-3">
+              En fazla 50 karakter · {newNeigh.length}/50
             </div>
             <div className="text-xs opacity-60 mb-2">
               {neighLoading
                 ? "Yükleniyor…"
-                : `${neighborhoods.length} mahalle`}
+                : coverageOnly
+                  ? `${visibleNeighborhoods.length} verili mahalle (toplam ${neighborhoods.length})`
+                  : `${neighborhoods.length} mahalle`}
             </div>
             <div className="flex flex-wrap gap-2">
-              {!neighLoading && neighborhoods.length === 0 && (
-                <span className="opacity-60 text-sm">Mahalle yok</span>
+              {!neighLoading && visibleNeighborhoods.length === 0 && (
+                <span className="opacity-60 text-sm">
+                  {coverageOnly ? "Bu ilçede verili mahalle yok" : "Mahalle yok"}
+                </span>
               )}
-              {neighborhoods.map((n) => (
+              {visibleNeighborhoods.map((n) => (
                 <span key={n.id} className="badge badge-outline gap-2">
                   {n.name}
                   <button onClick={() => removeNeighborhood(n.id)} className="opacity-60 hover:opacity-100">✕</button>

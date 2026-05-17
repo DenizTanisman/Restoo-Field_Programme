@@ -224,7 +224,7 @@ const ApplyPage = () => {
                 </p>
                 <a
                   href="mailto:info@opencard.com"
-                  className="btn btn-sm bg-white/20 border-white/30 hover:bg-white/30 text-white"
+                  className="btn btn-sm bg-base-100/20 border-white/30 hover:bg-base-100/30 text-white"
                 >
                   info@opencard.com
                 </a>

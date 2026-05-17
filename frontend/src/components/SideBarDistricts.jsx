@@ -12,6 +12,26 @@ const SideBarDistricts = ({
   const [cache, setCache] = useState({}); // districtId -> neighborhoods[]
   const [loadingId, setLoadingId] = useState(null);
 
+  // Veri-girilen-ilçe/mahalle filtresi
+  const [coverageOnly, setCoverageOnly] = useState(false);
+  const [coverage, setCoverage] = useState(null); // null = henüz yüklenmedi
+  const [coverageLoading, setCoverageLoading] = useState(false);
+
+  const toggleCoverage = async () => {
+    if (!coverageOnly && coverage === null) {
+      setCoverageLoading(true);
+      try {
+        const res = await api.getDataCoverage();
+        setCoverage(res.district_neighborhoods || {});
+      } catch {
+        setCoverage({});
+      } finally {
+        setCoverageLoading(false);
+      }
+    }
+    setCoverageOnly((v) => !v);
+  };
+
   // Seçili ilçe değişirse otomatik aç
   useEffect(() => {
     if (selectedDistrictId) {
@@ -44,15 +64,41 @@ const SideBarDistricts = ({
     setDistrict(district);
   };
 
-  const sorted = [...districts].sort((a, b) => a.name.localeCompare(b.name, "tr"));
+  const sortedAll = [...districts].sort((a, b) => a.name.localeCompare(b.name, "tr"));
+  const sorted = coverageOnly && coverage
+    ? sortedAll.filter((d) => (coverage[d.id]?.length ?? 0) > 0)
+    : sortedAll;
 
   return (
-    <aside className="w-64 bg-white rounded-2xl shadow-md flex flex-col p-4 shrink-0 overflow-y-auto m-3 max-h-[calc(100vh-1.5rem)] sticky top-3">
+    <aside className="w-64 bg-base-100 rounded-2xl shadow-md flex flex-col p-4 shrink-0 overflow-y-auto m-3 max-h-[calc(100vh-1.5rem)] sticky top-3">
+      <button
+        type="button"
+        onClick={toggleCoverage}
+        disabled={coverageLoading}
+        className={`mb-3 w-full text-xs px-3 py-2 rounded-lg border transition-colors ${
+          coverageOnly
+            ? "bg-primary text-primary-content border-primary"
+            : "bg-base-100 border-base-300 hover:bg-base-200"
+        }`}
+        title="Sadece verisi (Analytics/Metrics) girilmiş ilçe ve mahalleleri göster"
+      >
+        {coverageLoading
+          ? "Yükleniyor…"
+          : coverageOnly
+            ? "✓ Sadece verisi olanlar"
+            : "Sadece verisi olanlar"}
+      </button>
       <ul className="flex flex-col gap-1">
+        {sorted.length === 0 && (
+          <li className="text-xs opacity-60 px-3 py-2">Veri girilmiş ilçe yok</li>
+        )}
         {sorted.map((district) => {
           const active = selectedDistrictId === district.id;
           const open = openId === district.id;
-          const neighborhoods = cache[district.id] || [];
+          const rawNeighborhoods = cache[district.id] || [];
+          const neighborhoods = coverageOnly && coverage
+            ? rawNeighborhoods.filter((n) => coverage[district.id]?.includes(n.id))
+            : rawNeighborhoods;
           return (
             <li key={district.id}>
               <button

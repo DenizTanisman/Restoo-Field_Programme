@@ -84,10 +84,30 @@ class NeighborhoodAnalyticsResponse(BaseModel):
     budget: BudgetData
     forecast: ForecastData
     metrics: MetricsData = Field(default_factory=MetricsData)
+    # Fallback bilgisi — frontend banner için
+    analytics_source: str = "neighborhood"  # "neighborhood" | "district_fallback" | "none"
+    metrics_source: str = "neighborhood"    # "neighborhood" | "district_fallback" | "none"
 
 
 class SiteSettingsResponse(BaseModel):
+    # Stats sayıları
     loyalty_active_firms: str = ""
     loyalty_churn_reduction: str = ""
     loyalty_avg_roi: str = ""
     loyalty_payback_period: str = ""
+    # Stats etiketleri
+    loyalty_stats_active_firms_label: str = ""
+    loyalty_stats_churn_label: str = ""
+    loyalty_stats_roi_label: str = ""
+    loyalty_stats_payback_label: str = ""
+    # Hero
+    loyalty_hero_bg_url: str = ""
+    loyalty_hero_badge: str = ""
+    loyalty_hero_title: str = ""
+    loyalty_hero_title_accent: str = ""
+    loyalty_hero_subtitle: str = ""
+    loyalty_hero_cta_text: str = ""
+    # Features
+    loyalty_features_title: str = ""
+    loyalty_features_subtitle: str = ""
+    loyalty_feature_cards: list[dict[str, Any]] = Field(default_factory=list)

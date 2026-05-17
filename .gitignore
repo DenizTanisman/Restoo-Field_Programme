@@ -33,3 +33,6 @@ __pycache__/
 .venv/
 venv/
 .pytest_cache/
+
+# Local DB backups (Postgres'e geçildi, SQLite snapshot'lar lokal kalır)
+*.db.backup-*

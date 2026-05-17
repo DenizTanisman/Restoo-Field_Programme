@@ -1109,7 +1109,7 @@ S3_SECRET_KEY=...
 CDN_BASE_URL=https://cdn.opencard.com
 
 # CORS
-ALLOWED_ORIGINS=http://localhost:5173,http://localhost:5174,https://opencard.com
+ALLOWED_ORIGINS=http://localhost:5173,http://localhost:5181,https://opencard.com
 ```
 
 ### Admin Panel `.env`

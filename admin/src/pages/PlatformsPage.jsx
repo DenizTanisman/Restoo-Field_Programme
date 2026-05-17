@@ -5,7 +5,8 @@ import FormModal from "../components/ui/FormModal";
 import ConfirmDialog from "../components/ui/ConfirmDialog";
 import { useToast } from "../components/ui/Toast";
 
-const EMPTY = { name: "", color_hex: "", logo_url: "", is_active: true };
+const EMPTY = { name: "", color_hex: "#000000", logo_url: "", is_active: true };
+const HEX_RE = /^#[0-9A-Fa-f]{6}$/;
 
 export default function PlatformsPage() {
   const toast = useToast();
@@ -34,7 +35,22 @@ export default function PlatformsPage() {
 
   const save = async (e) => {
     e.preventDefault();
-    const payload = { ...form, color_hex: form.color_hex || null, logo_url: form.logo_url || null };
+    const name = form.name.trim();
+    const color = form.color_hex.trim().toUpperCase();
+    const logo = form.logo_url.trim();
+    if (!name) {
+      toast.push("Ad boş olamaz", "error");
+      return;
+    }
+    if (!HEX_RE.test(color)) {
+      toast.push("Renk değeri #RRGGBB formatında olmalıdır", "error");
+      return;
+    }
+    if (!logo) {
+      toast.push("Logo URL boş olamaz", "error");
+      return;
+    }
+    const payload = { name, color_hex: color, logo_url: logo, is_active: form.is_active };
     try {
       if (editing === "new") {
         await platformsApi.create(payload);
@@ -103,21 +119,56 @@ export default function PlatformsPage() {
       </div>
 
       <FormModal open={editing !== null} title={editing === "new" ? "Yeni Platform" : "Platform Düzenle"} onClose={close}>
-        <form onSubmit={save} className="space-y-3">
-          <div className="form-control">
-            <label className="label"><span className="label-text">Ad</span></label>
-            <input className="input input-bordered" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required />
+        <form onSubmit={save} className="space-y-5">
+          <div className="form-control flex flex-col gap-2">
+            <label className="label-text font-medium">Ad *</label>
+            <input
+              className="input input-bordered"
+              value={form.name}
+              onChange={(e) => setForm({ ...form, name: e.target.value })}
+              onBlur={(e) => setForm({ ...form, name: e.target.value.trim() })}
+              required
+              maxLength={100}
+            />
+            <span className="text-xs text-base-content/60">Baş/son boşluklar otomatik temizlenir. Aynı isim (büyük/küçük harf farketmez) iki kez girilemez.</span>
           </div>
-          <div className="form-control">
-            <label className="label"><span className="label-text">Renk (#RRGGBB)</span></label>
-            <input className="input input-bordered" value={form.color_hex} onChange={(e) => setForm({ ...form, color_hex: e.target.value })} placeholder="#FF6000" />
+          <div className="form-control flex flex-col gap-2">
+            <label className="label-text font-medium">Renk *</label>
+            <div className="flex items-center gap-2">
+              <input
+                type="color"
+                className="w-12 h-10 rounded border border-base-300 cursor-pointer"
+                value={HEX_RE.test(form.color_hex) ? form.color_hex : "#000000"}
+                onChange={(e) => setForm({ ...form, color_hex: e.target.value.toUpperCase() })}
+              />
+              <input
+                className="input input-bordered flex-1"
+                value={form.color_hex}
+                onChange={(e) => setForm({ ...form, color_hex: e.target.value })}
+                onBlur={(e) => setForm({ ...form, color_hex: e.target.value.trim().toUpperCase() })}
+                pattern="^#[0-9A-Fa-f]{6}$"
+                title="Renk değeri #RRGGBB formatında olmalıdır"
+                maxLength={7}
+                placeholder="#FF6000"
+                required
+              />
+            </div>
+            <span className="text-xs text-base-content/60">Renk değeri <code>#RRGGBB</code> formatında olmalıdır (örn. #FF6000).</span>
           </div>
-          <div className="form-control">
-            <label className="label"><span className="label-text">Logo URL</span></label>
-            <input className="input input-bordered" value={form.logo_url} onChange={(e) => setForm({ ...form, logo_url: e.target.value })} />
+          <div className="form-control flex flex-col gap-2">
+            <label className="label-text font-medium">Logo URL *</label>
+            <input
+              type="url"
+              className="input input-bordered"
+              value={form.logo_url}
+              onChange={(e) => setForm({ ...form, logo_url: e.target.value })}
+              onBlur={(e) => setForm({ ...form, logo_url: e.target.value.trim() })}
+              placeholder="https://..."
+              required
+            />
           </div>
-          <label className="label cursor-pointer">
-            <span className="label-text">Aktif</span>
+          <label className="flex items-center justify-between cursor-pointer pt-1">
+            <span className="label-text font-medium">Aktif</span>
             <input type="checkbox" className="toggle toggle-primary" checked={form.is_active} onChange={(e) => setForm({ ...form, is_active: e.target.checked })} />
           </label>
           <div className="modal-action">

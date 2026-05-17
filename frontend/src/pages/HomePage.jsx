@@ -23,11 +23,32 @@ export default function HomePage() {
   const [selectedNeighborhood, setSelectedNeighborhood] = useState(null);
   const [neighborhoodInfo, setNeighborhoodInfo] = useState(null);
   const [selectedCategory, setSelectedCategory] = useState(null);
+  const [selectedRestaurant, setSelectedRestaurant] = useState(null); // {id, name} — search ile seçildiyse cascade dashboard kullanılır
   const [searchQuery, setSearchQuery] = useState("");
   const [analyticsLoading, setAnalyticsLoading] = useState(false);
   const [analyticsError, setAnalyticsError] = useState(null);
   const [neighborhoodLoading, setNeighborhoodLoading] = useState(false);
   const [neighborhoodWarning, setNeighborhoodWarning] = useState(null);
+
+  // Filtre seçimine (ilçe/mahalle/kategori) göre eşleşen restoranları otomatik getir.
+  // Search aktifken devre dışı (search kendi sonuçlarını set ediyor).
+  useEffect(() => {
+    if (searchQuery) return; // search sonuçları varken otomatik filter override yapmasın
+    if (!selectedDistrict && !selectedCategory) {
+      setRestaurants(null);
+      return;
+    }
+    let alive = true;
+    api
+      .listRestaurants({
+        districtId: selectedDistrict,
+        neighborhoodId: selectedNeighborhood,
+        categoryId: selectedCategory?.id,
+      })
+      .then((results) => { if (alive) setRestaurants(results); })
+      .catch(() => { if (alive) setRestaurants([]); });
+    return () => { alive = false; };
+  }, [selectedDistrict, selectedNeighborhood, selectedCategory, searchQuery]);
 
   // Helper: bir mahalle analitiğinin tamamen boş olup olmadığını anlar
   const isNeighborhoodEmpty = (data) => {
@@ -69,6 +90,34 @@ export default function HomePage() {
     }
   }, []);
 
+  // Restoran cascade dashboard (search ile bir restoran seçildiğinde)
+  const fetchRestaurantDashboard = useCallback(async (restaurantId, restaurantName) => {
+    setNeighborhoodLoading(true);
+    setNeighborhoodWarning(null);
+    try {
+      const data = await api.getRestaurantDashboard(restaurantId);
+      setNeighborhoodInfo({
+        name: restaurantName,
+        platforms: data.platforms,
+        budget: data.budget,
+        forecast: data.forecast,
+        metrics: data.metrics,
+        analytics_source: data.analytics_source,
+        metrics_source: data.metrics_source,
+      });
+      if (data.analytics_source === "none" && data.metrics_source === "none") {
+        setNeighborhoodWarning({ kind: "none", name: restaurantName });
+      } else if (data.analytics_source === "district_fallback" || data.metrics_source === "district_fallback") {
+        setNeighborhoodWarning({ kind: "fallback", name: restaurantName, analytics_source: data.analytics_source, metrics_source: data.metrics_source });
+      }
+    } catch {
+      setNeighborhoodInfo({ name: restaurantName, platforms: [], budget: {}, forecast: {}, metrics: null, analytics_source: "none", metrics_source: "none" });
+      setNeighborhoodWarning({ kind: "none", name: restaurantName });
+    } finally {
+      setNeighborhoodLoading(false);
+    }
+  }, []);
+
   const fetchNeighborhoodAnalytics = useCallback(async (neighborhoodId, neighborhoodName, categoryId) => {
     setNeighborhoodLoading(true);
     setNeighborhoodWarning(null);
@@ -80,13 +129,18 @@ export default function HomePage() {
         budget: data.budget,
         forecast: data.forecast,
         metrics: data.metrics,
+        analytics_source: data.analytics_source,
+        metrics_source: data.metrics_source,
       });
-      if (isNeighborhoodEmpty(data)) {
-        setNeighborhoodWarning(`"${neighborhoodName}" mahallesi hakkında veri girişi olmamıştır.`);
+      // Sadece her iki kaynak da "none" ise (mahalle + ilçe ikisi de boş) uyar
+      if (data.analytics_source === "none" && data.metrics_source === "none") {
+        setNeighborhoodWarning({ kind: "none", name: neighborhoodName });
+      } else if (data.analytics_source === "district_fallback" || data.metrics_source === "district_fallback") {
+        setNeighborhoodWarning({ kind: "fallback", name: neighborhoodName, analytics_source: data.analytics_source, metrics_source: data.metrics_source });
       }
     } catch {
-      setNeighborhoodInfo({ name: neighborhoodName, platforms: [], budget: {}, forecast: {}, metrics: null });
-      setNeighborhoodWarning(`"${neighborhoodName}" mahallesi hakkında veri girişi olmamıştır.`);
+      setNeighborhoodInfo({ name: neighborhoodName, platforms: [], budget: {}, forecast: {}, metrics: null, analytics_source: "none", metrics_source: "none" });
+      setNeighborhoodWarning({ kind: "none", name: neighborhoodName });
     } finally {
       setNeighborhoodLoading(false);
     }
@@ -95,6 +149,7 @@ export default function HomePage() {
   const handleDistrictClick = (id, name, side) => {
     setRestaurants(null);
     setSearchQuery("");
+    setSelectedRestaurant(null);
     if (selectedDistrict === id) {
       setSelectedDistrict(null);
       setSelectedInfo(null);
@@ -145,6 +200,7 @@ export default function HomePage() {
       setSelectedNeighborhood(null);
       setNeighborhoodInfo(null);
       setSelectedCategory(null);
+      setSelectedRestaurant(null);
       return;
     }
     try {
@@ -153,15 +209,24 @@ export default function HomePage() {
       if (results.length > 0) {
         const first = results[0];
         const district = districts.find((d) => d.id === first.district_id);
+        const categoryId = first.category_id ?? null;
+        const categoryLabel = first.category_label || "";
+        const cat = categoryId ? { id: categoryId, label: categoryLabel } : null;
         setSelectedDistrict(first.district_id);
-        setSelectedNeighborhood(null);
-        setNeighborhoodInfo(null);
+        setSelectedCategory(cat);
+        setSelectedNeighborhood(first.neighborhood_id || null);
+        setSelectedRestaurant({ id: first.id, name: first.name });
+        // Restoran-bazlı cascade dashboard (en spesifik)
+        fetchRestaurantDashboard(first.id, first.name);
         if (district) {
-          fetchDistrictAnalytics(district.id, district.name, district.side, null);
+          fetchDistrictAnalytics(district.id, district.name, district.side, categoryId);
         }
+      } else {
+        setSelectedRestaurant(null);
       }
     } catch {
       setRestaurants([]);
+      setSelectedRestaurant(null);
     }
   };
 
@@ -230,18 +295,56 @@ export default function HomePage() {
 
           <RestaurantCard restaurants={restaurants} />
 
-          {neighborhoodWarning && !neighborhoodLoading && (
-            <div className="mt-4 alert alert-warning shadow-sm">
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01M4.93 19.07A10 10 0 1119.07 4.93 10 10 0 014.93 19.07z" />
-              </svg>
-              <div>
-                <h4 className="font-semibold">Veri yok</h4>
-                <p className="text-sm opacity-80">{neighborhoodWarning} Admin panelinden bu mahalle için Metrics ve Analytics girişi yapın.</p>
-              </div>
-              <button className="btn btn-sm btn-ghost" onClick={() => setNeighborhoodWarning(null)}>Kapat</button>
-            </div>
-          )}
+          {neighborhoodWarning && !neighborhoodLoading && (() => {
+            const w = neighborhoodWarning;
+            const neighName = w.name || selectedNeighborhood?.name || activeAnalytics.name;
+            const catLabel = selectedCategory?.label;
+            const comboLabel = catLabel ? `"${neighName}" mahallesi × "${catLabel}" kategorisi` : `"${neighName}" mahallesi (tüm kategoriler)`;
+
+            // Tam boş durum
+            if (w.kind === "none") {
+              return (
+                <div className="mt-4 alert alert-warning shadow-sm">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01M4.93 19.07A10 10 0 1119.07 4.93 10 10 0 014.93 19.07z" />
+                  </svg>
+                  <div className="flex-1">
+                    <h4 className="font-semibold">Bu seçim için hiçbir yerden veri bulunamadı</h4>
+                    <p className="text-sm opacity-80">
+                      {comboLabel} için ne mahalle ne de ilçe seviyesinde Analytics/Metrics kaydı var. Kartlar boş gösteriliyor.
+                    </p>
+                    <p className="text-xs opacity-70 mt-1">
+                      Admin panel → <code className="px-1">Analytics</code> / <code className="px-1">Metrics</code> sekmelerinden bu kombinasyon için veri girin (mahalle bazında en spesifik; mahalle veri yoksa ilçe bazında fallback otomatik devreye girer).
+                    </p>
+                  </div>
+                  <button className="btn btn-sm btn-ghost" onClick={() => setNeighborhoodWarning(null)}>Kapat</button>
+                </div>
+              );
+            }
+
+            // Fallback durumu (en az birinin kaynağı ilçe)
+            if (w.kind === "fallback") {
+              const both = w.analytics_source === "district_fallback" && w.metrics_source === "district_fallback";
+              return (
+                <div className="mt-4 alert alert-info shadow-sm">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  <div className="flex-1">
+                    <h4 className="font-semibold">İlçe ortalaması gösteriliyor</h4>
+                    <p className="text-sm opacity-80">
+                      {comboLabel} için mahalle bazlı {both ? "veri" : (w.metrics_source === "district_fallback" ? "metrics verisi" : "analytics verisi")} yok — bu yüzden bu kartlar bağlı olduğu <b>ilçe</b> bazlı aggregate veriden çekildi.
+                    </p>
+                    <p className="text-xs opacity-70 mt-1">
+                      Mahalleye özel veri görmek için admin panelden bu mahalle + kategori için kayıt ekleyebilirsin.
+                    </p>
+                  </div>
+                  <button className="btn btn-sm btn-ghost" onClick={() => setNeighborhoodWarning(null)}>Kapat</button>
+                </div>
+              );
+            }
+            return null;
+          })()}
 
           <div className="mt-4 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 auto-rows-fr gap-4">
               {/* 1 */}
@@ -321,7 +424,7 @@ export default function HomePage() {
             />
           </div>
         </div>
-        <SideBarCategories onCategorySelect={handleCategorySelect} />
+        <SideBarCategories onCategorySelect={handleCategorySelect} selectedCategoryId={selectedCategory?.id ?? null} />
       </section>
 
       <section className="mb-15 px-4 md:px-8">

@@ -79,7 +79,7 @@ export default function SearchBar({
     <div ref={containerRef} className="w-full relative">
       <form
         onSubmit={handleSubmit}
-        className="w-full flex items-center gap-2 bg-gray-100 rounded-lg px-3 py-3 text-zinc-900"
+        className="w-full flex items-center gap-2 bg-base-200 rounded-lg px-3 py-3 text-zinc-900"
       >
         <button
           type="submit"
@@ -113,9 +113,9 @@ export default function SearchBar({
       </form>
 
       {open && (
-        <div className="absolute left-0 right-0 top-full mt-1 z-30 bg-white rounded-lg shadow-lg border border-gray-100 max-h-80 overflow-y-auto">
+        <div className="absolute left-0 right-0 top-full mt-1 z-30 bg-base-100 rounded-lg shadow-lg border border-base-300 max-h-80 overflow-y-auto">
           {suggestions.length === 0 ? (
-            <div className="px-4 py-3 text-sm text-gray-400">
+            <div className="px-4 py-3 text-sm text-base-content/50">
               {loading ? "Aranıyor…" : "Sonuç bulunamadı"}
             </div>
           ) : (
@@ -125,7 +125,7 @@ export default function SearchBar({
                   <button
                     type="button"
                     onClick={() => handlePick(r)}
-                    className="w-full text-left px-4 py-2.5 hover:bg-gray-50 flex items-center gap-3"
+                    className="w-full text-left px-4 py-2.5 hover:bg-base-200 flex items-center gap-3"
                   >
                     <span className="text-lg">{r.category_emoji || "🍽️"}</span>
                     <div className="flex-1 min-w-0">

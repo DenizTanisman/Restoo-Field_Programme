@@ -20,9 +20,9 @@ const CustomTooltip = ({ active, payload }) => {
   if (!active || !payload?.length) return null;
   const { name, value } = payload[0];
   return (
-    <div className="bg-white border border-gray-200 rounded-lg px-3 py-2 shadow text-sm">
-      <p className="font-semibold text-gray-800">{name}</p>
-      <p className="text-gray-600">{value.toLocaleString("tr-TR")} müşteri</p>
+    <div className="bg-base-100 border border-base-300 rounded-lg px-3 py-2 shadow text-sm">
+      <p className="font-semibold text-base-content">{name}</p>
+      <p className="text-base-content/70">{value.toLocaleString("tr-TR")} müşteri</p>
     </div>
   );
 };
@@ -68,9 +68,9 @@ export default function PlatformDonutCard({ districtName, categoryLabel, platfor
       <div className="card-body p-5">
         {/* Başlık */}
         <div className="mb-3">
-          <h3 className="text-lg font-semibold text-gray-800">Platform Müşteri Dağılımı</h3>
+          <h3 className="text-lg font-semibold text-base-content">Platform Müşteri Dağılımı</h3>
           {districtName && (
-            <p className="text-sm text-gray-500">
+            <p className="text-sm text-base-content/60">
               {districtName}{categoryLabel ? ` · ${categoryLabel}` : ""}
             </p>
           )}
@@ -116,32 +116,37 @@ export default function PlatformDonutCard({ districtName, categoryLabel, platfor
               </ResponsiveContainer>
 
               <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                <span className="text-2xl font-bold text-gray-800">{total.toLocaleString("tr-TR")}</span>
-                <span className="text-xs text-gray-500">Toplam</span>
+                <span className="text-2xl font-bold text-base-content">{total.toLocaleString("tr-TR")}</span>
+                <span className="text-xs text-base-content/60">Toplam</span>
               </div>
             </div>
 
-            <ul className="mt-3 space-y-2">
-              {displayList.map((item) => (
-                <li key={item.name} className="flex items-center justify-between text-sm">
-                  <div className="flex items-center gap-2">
-                    <span
-                      className="inline-block w-3 h-3 rounded-full flex-shrink-0"
-                      style={{ backgroundColor: item.color }}
-                    />
-                    <span className="text-gray-700">{item.name}</span>
+            {/* Her platform için iki istatistik kutusu: aktif müşteri + restoran sayısı */}
+            <div className="mt-3 grid grid-cols-3 gap-2">
+              {displayList.map((item) => {
+                // Restoran sayısı: backend platforms[].restaurants alanından (varsa)
+                const matched = platforms.find((p) => p.name === item.name);
+                const restaurantCount = matched?.restaurants ?? 0;
+                const percent = total > 0 ? ((item.value / total) * 100).toFixed(1) : "0";
+                return (
+                  <div key={item.name} className="flex flex-col">
+                    <div className="flex items-center gap-1 mb-1 min-h-[20px]">
+                      <span className="inline-block w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ backgroundColor: item.color }} />
+                      <span className="text-[11px] font-medium text-base-content truncate" title={item.name}>{item.name}</span>
+                    </div>
+                    <div className="rounded-lg p-2 mb-1.5 text-center" style={{ backgroundColor: item.color + "1A" /* %10 opacity */ }}>
+                      <p className="text-[10px] text-base-content/60 mb-0.5">Aktif müşteri</p>
+                      <p className="text-base font-bold" style={{ color: item.color }}>{item.value.toLocaleString("tr-TR")}</p>
+                      <p className="text-[10px] text-base-content/50 mt-0.5">%{percent}</p>
+                    </div>
+                    <div className="rounded-lg p-2 text-center bg-base-200 border border-base-300">
+                      <p className="text-[10px] text-base-content/60 mb-0.5">Restoran</p>
+                      <p className="text-base font-bold text-base-content">{restaurantCount.toLocaleString("tr-TR")}</p>
+                    </div>
                   </div>
-                  <div className="flex items-center gap-3">
-                    <span className="font-semibold text-gray-800">
-                      {item.value.toLocaleString("tr-TR")}
-                    </span>
-                    <span className="text-gray-400 w-10 text-right">
-                      {total > 0 ? `${((item.value / total) * 100).toFixed(1)}%` : "0%"}
-                    </span>
-                  </div>
-                </li>
-              ))}
-            </ul>
+                );
+              })}
+            </div>
           </>
         )}
       </div>

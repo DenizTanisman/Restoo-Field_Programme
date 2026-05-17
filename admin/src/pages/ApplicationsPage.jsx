@@ -13,6 +13,17 @@ const STATUS_LABELS = {
   rejected: "Red",
 };
 
+const EMPTY_FORM = {
+  first_name: "",
+  last_name: "",
+  email: "",
+  phone: "",
+  city: "",
+  district: "",
+  vehicle: "",
+  message: "",
+};
+
 export default function ApplicationsPage() {
   const toast = useToast();
   const [statusFilter, setStatusFilter] = useState("");
@@ -21,6 +32,9 @@ export default function ApplicationsPage() {
   const [list, setList] = useState({ total: 0, data: [] });
   const [loading, setLoading] = useState(true);
   const [detail, setDetail] = useState(null);
+  const [editing, setEditing] = useState(null); // null = closed, {} = create, {id, ...} = edit
+  const [form, setForm] = useState(EMPTY_FORM);
+  const [saving, setSaving] = useState(false);
 
   const load = async () => {
     setLoading(true);
@@ -47,6 +61,63 @@ export default function ApplicationsPage() {
     }
   };
 
+  const openCreate = () => {
+    setForm(EMPTY_FORM);
+    setEditing({});
+  };
+
+  const openEdit = (row) => {
+    setForm({
+      first_name: row.first_name || "",
+      last_name: row.last_name || "",
+      email: row.email || "",
+      phone: row.phone || "",
+      city: row.city || "",
+      district: row.district || "",
+      vehicle: row.vehicle || "",
+      message: row.message || "",
+    });
+    setEditing(row);
+  };
+
+  const submitForm = async (e) => {
+    e.preventDefault();
+    setSaving(true);
+    try {
+      const payload = {
+        ...form,
+        city: form.city || null,
+        district: form.district || null,
+        vehicle: form.vehicle || null,
+        message: form.message || null,
+      };
+      if (editing?.id) {
+        await applicationsApi.update(editing.id, payload);
+        toast.push("Başvuru güncellendi", "success");
+      } else {
+        await applicationsApi.create(payload);
+        toast.push("Başvuru eklendi", "success");
+      }
+      setEditing(null);
+      load();
+    } catch (err) {
+      toast.push(err.message, "error");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const removeRow = async (id) => {
+    if (!confirm("Bu başvuruyu silmek istediğinize emin misiniz?")) return;
+    try {
+      await applicationsApi.remove(id);
+      toast.push("Başvuru silindi", "success");
+      load();
+    } catch (err) {
+      toast.push(err.message, "error");
+    }
+  };
+
   const totalPages = Math.max(1, Math.ceil(list.total / limit));
 
   return (
@@ -55,6 +126,7 @@ export default function ApplicationsPage() {
         <div className="flex justify-between items-center mb-3">
           <h2 className="card-title">Başvurular</h2>
           <div className="flex gap-2">
+            <button className="btn btn-primary btn-sm" onClick={openCreate}>+ Yeni başvuru</button>
             <CsvExportButton onExport={applicationsApi.exportCsv} filename="applications.csv" />
           </div>
         </div>
@@ -100,7 +172,11 @@ export default function ApplicationsPage() {
                 key: "actions",
                 label: "İşlem",
                 render: (r) => (
-                  <button className="btn btn-xs" onClick={() => setDetail(r)}>Detay</button>
+                  <div className="flex gap-1">
+                    <button className="btn btn-xs" onClick={() => setDetail(r)}>Detay</button>
+                    <button className="btn btn-xs btn-ghost" onClick={() => openEdit(r)}>Düzenle</button>
+                    <button className="btn btn-xs btn-error btn-ghost" onClick={() => removeRow(r.id)}>Sil</button>
+                  </div>
                 ),
               },
             ]}
@@ -117,6 +193,63 @@ export default function ApplicationsPage() {
           </div>
         </div>
       </div>
+
+      <FormModal
+        open={!!editing}
+        title={editing?.id ? `Başvuru #${editing.id} düzenle` : "Yeni başvuru ekle"}
+        onClose={() => setEditing(null)}
+      >
+        <form onSubmit={submitForm} className="space-y-3">
+          <div className="grid grid-cols-2 gap-3">
+            <label className="form-control">
+              <span className="label-text">Ad *</span>
+              <input className="input input-bordered input-sm" required value={form.first_name}
+                onChange={(e) => setForm({ ...form, first_name: e.target.value })} />
+            </label>
+            <label className="form-control">
+              <span className="label-text">Soyad *</span>
+              <input className="input input-bordered input-sm" required value={form.last_name}
+                onChange={(e) => setForm({ ...form, last_name: e.target.value })} />
+            </label>
+            <label className="form-control">
+              <span className="label-text">E-posta *</span>
+              <input type="email" className="input input-bordered input-sm" required value={form.email}
+                onChange={(e) => setForm({ ...form, email: e.target.value })} />
+            </label>
+            <label className="form-control">
+              <span className="label-text">Telefon *</span>
+              <input className="input input-bordered input-sm" required value={form.phone}
+                onChange={(e) => setForm({ ...form, phone: e.target.value })} />
+            </label>
+            <label className="form-control">
+              <span className="label-text">Şehir</span>
+              <input className="input input-bordered input-sm" value={form.city}
+                onChange={(e) => setForm({ ...form, city: e.target.value })} />
+            </label>
+            <label className="form-control">
+              <span className="label-text">İlçe</span>
+              <input className="input input-bordered input-sm" value={form.district}
+                onChange={(e) => setForm({ ...form, district: e.target.value })} />
+            </label>
+            <label className="form-control col-span-2">
+              <span className="label-text">Araç</span>
+              <input className="input input-bordered input-sm" value={form.vehicle}
+                onChange={(e) => setForm({ ...form, vehicle: e.target.value })} />
+            </label>
+            <label className="form-control col-span-2">
+              <span className="label-text">Mesaj</span>
+              <textarea className="textarea textarea-bordered textarea-sm" rows={3} value={form.message}
+                onChange={(e) => setForm({ ...form, message: e.target.value })} />
+            </label>
+          </div>
+          <div className="flex justify-end gap-2 pt-2">
+            <button type="button" className="btn btn-ghost btn-sm" onClick={() => setEditing(null)}>Vazgeç</button>
+            <button type="submit" className="btn btn-primary btn-sm" disabled={saving}>
+              {saving ? "Kaydediliyor…" : (editing?.id ? "Güncelle" : "Ekle")}
+            </button>
+          </div>
+        </form>
+      </FormModal>
 
       <FormModal open={!!detail} title={detail ? `Başvuru #${detail.id}` : ""} onClose={() => setDetail(null)}>
         {detail && (

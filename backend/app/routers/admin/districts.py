@@ -1,10 +1,16 @@
 from fastapi import APIRouter, Depends, HTTPException, status
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.database import get_db
-from app.models import District, Neighborhood, Restaurant
+from app.models import (
+    District,
+    Neighborhood,
+    NeighborhoodAnalytics,
+    NeighborhoodMetrics,
+    Restaurant,
+)
 from app.schemas import DistrictSchema, NeighborhoodSchema
 
 
@@ -27,8 +33,18 @@ class DistrictUpdate(BaseModel):
 
 
 class NeighborhoodInput(BaseModel):
-    name: str = Field(min_length=1, max_length=50)
+    name: str
     is_active: bool = True
+
+    @field_validator("name")
+    @classmethod
+    def _validate_name(cls, v: str) -> str:
+        v = (v or "").strip()
+        if not v:
+            raise ValueError("Mahalle adı boş olamaz")
+        if len(v) > 50:
+            raise ValueError("Mahalle adı en fazla 50 karakter olabilir")
+        return v
 
 
 @router.get("", response_model=list[DistrictSchema])
@@ -76,6 +92,40 @@ async def delete_district(district_id: str, db: AsyncSession = Depends(get_db)):
         )
     await db.delete(d)
     await db.commit()
+
+
+# === Data coverage (toggle: sadece veri girilen ilçe/mahalleleri göster) ===
+
+@router.get("/data-coverage")
+async def districts_data_coverage(db: AsyncSession = Depends(get_db)):
+    """Verisi olan mahalleleri ilçeye gruplayarak döner.
+
+    "Veri" = NeighborhoodMetrics veya NeighborhoodAnalytics tablosunda kayıt.
+    Response: { "district_neighborhoods": { "34-kadıköy": [513, 514, ...], ... } }
+    Sadece en az bir verili mahallesi olan ilçeler dahildir.
+    """
+    metric_ids = (
+        await db.execute(select(NeighborhoodMetrics.neighborhood_id).distinct())
+    ).scalars().all()
+    analytics_ids = (
+        await db.execute(select(NeighborhoodAnalytics.neighborhood_id).distinct())
+    ).scalars().all()
+    data_nb_ids = {nid for nid in (*metric_ids, *analytics_ids) if nid is not None}
+
+    coverage: dict[str, list[int]] = {}
+    if data_nb_ids:
+        rows = (
+            await db.execute(
+                select(Neighborhood).where(Neighborhood.id.in_(data_nb_ids))
+            )
+        ).scalars().all()
+        for n in rows:
+            coverage.setdefault(n.district_id, []).append(n.id)
+        # Sıralı dönelim
+        for k in coverage:
+            coverage[k].sort()
+
+    return {"district_neighborhoods": coverage}
 
 
 # === Neighborhoods (nested) ===

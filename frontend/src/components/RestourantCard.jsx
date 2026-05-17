@@ -21,13 +21,13 @@ export default function RestaurantCard({ restaurants }) {
   return (
     <div className="flex flex-col gap-4 mb-6">
       {restaurants.map((r, idx) => (
-        <div key={idx} className="card shadow-md bg-white animate-[fadeIn_0.25s_ease] text-gray-900">
+        <div key={idx} className="card shadow-md bg-base-100 animate-[fadeIn_0.25s_ease] text-base-content">
           <div className="card-body">
 
             {/* Restoran adı + district */}
             <div className="text-center mb-4">
-              <h2 className="text-3xl font-semibold text-gray-900">{r.name}</h2>
-              <p className="text-sm text-gray-500 mt-1">{r.districtName}</p>
+              <h2 className="text-3xl font-semibold text-base-content">{r.name}</h2>
+              <p className="text-sm text-base-content/60 mt-1">{r.districtName}</p>
             </div>
 
             {/* Platform satırları */}
@@ -37,7 +37,7 @@ export default function RestaurantCard({ restaurants }) {
                   <div key={platform.name} className="flex items-center gap-4">
                     {PLATFORM_ICONS[i]}
                     <span className="text-2xl font-bold min-w-12">{platform.customers}</span>
-                    <span className="text-sm text-gray-600">Aktif Müşteri</span>
+                    <span className="text-sm text-base-content/70">Aktif Müşteri</span>
                   </div>
                 ))}
               </div>

@@ -3,7 +3,7 @@ from __future__ import annotations
 import json
 from datetime import datetime
 
-from fastapi import APIRouter, Depends, File, Form, HTTPException, Response, UploadFile, status
+from fastapi import APIRouter, Depends, File, Form, HTTPException, Query, Response, UploadFile, status
 from pydantic import BaseModel
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -101,7 +101,7 @@ async def create_case_study(
     title: str = Form(...),
     district_id: str | None = Form(default=None),
     category_id: int | None = Form(default=None),
-    sort_order: int = Form(default=0),
+    sort_order: int = Form(default=0, ge=0),
     is_active: bool = Form(default=True),
     before_daily_order: str | None = Form(default=None),
     before_avg_basket: str | None = Form(default=None),
@@ -154,7 +154,7 @@ async def update_case_study(
     title: str = Form(...),
     district_id: str | None = Form(default=None),
     category_id: int | None = Form(default=None),
-    sort_order: int = Form(default=0),
+    sort_order: int = Form(default=0, ge=0),
     is_active: bool = Form(default=True),
     before_daily_order: str | None = Form(default=None),
     before_avg_basket: str | None = Form(default=None),
@@ -200,12 +200,43 @@ async def update_case_study(
 
 
 @router.delete("/{case_id}", status_code=status.HTTP_204_NO_CONTENT)
-async def delete_case_study(case_id: int, db: AsyncSession = Depends(get_db)):
+async def delete_case_study(
+    case_id: int,
+    hard: bool = Query(default=False, description="true → kalıcı silme (görselleri de siler); false → soft delete (is_active=False)"),
+    db: AsyncSession = Depends(get_db),
+):
     s = (await db.execute(select(CaseStudy).where(CaseStudy.id == case_id))).scalar_one_or_none()
     if not s:
         raise HTTPException(status_code=404, detail="Case study bulunamadı")
-    s.is_active = False
+    if hard:
+        if s.before_image_url:
+            delete_media(s.before_image_url)
+        if s.after_image_url:
+            delete_media(s.after_image_url)
+        await db.delete(s)
+    else:
+        s.is_active = False
     await db.commit()
+
+
+class ActiveToggle(BaseModel):
+    is_active: bool
+
+
+@router.patch("/{case_id}/active", response_model=CaseStudyAdminSchema)
+async def set_case_study_active(
+    case_id: int,
+    payload: ActiveToggle,
+    db: AsyncSession = Depends(get_db),
+):
+    """Aktif/pasif durumunu doğrudan değiştir — listedeki toggle butonu için."""
+    s = (await db.execute(select(CaseStudy).where(CaseStudy.id == case_id))).scalar_one_or_none()
+    if not s:
+        raise HTTPException(status_code=404, detail="Case study bulunamadı")
+    s.is_active = payload.is_active
+    await db.commit()
+    await db.refresh(s)
+    return _serialize(s)
 
 
 @router.patch("/reorder", response_model=list[CaseStudyAdminSchema])

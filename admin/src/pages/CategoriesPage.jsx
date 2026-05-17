@@ -34,6 +34,10 @@ export default function CategoriesPage() {
 
   const save = async (e) => {
     e.preventDefault();
+    if (!Number.isInteger(form.sort_order) || form.sort_order < 0) {
+      toast.push("Sıra negatif olamaz, 0 veya pozitif bir tam sayı girin", "error");
+      return;
+    }
     try {
       if (editing === "new") {
         await categoriesApi.create(form);
@@ -99,21 +103,33 @@ export default function CategoriesPage() {
       </div>
 
       <FormModal open={editing !== null} title={editing === "new" ? "Yeni Kategori" : "Kategori Düzenle"} onClose={close}>
-        <form onSubmit={save} className="space-y-3">
-          <div className="form-control">
-            <label className="label"><span className="label-text">Ad</span></label>
+        <form onSubmit={save} className="space-y-5">
+          <div className="form-control flex flex-col gap-2">
+            <label className="label-text font-medium">Ad</label>
             <input className="input input-bordered" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required />
           </div>
-          <div className="form-control">
-            <label className="label"><span className="label-text">Emoji</span></label>
+          <div className="form-control flex flex-col gap-2">
+            <label className="label-text font-medium">Emoji</label>
             <input className="input input-bordered" value={form.emoji} onChange={(e) => setForm({ ...form, emoji: e.target.value })} required />
           </div>
-          <div className="form-control">
-            <label className="label"><span className="label-text">Sıra</span></label>
-            <input type="number" className="input input-bordered" value={form.sort_order} onChange={(e) => setForm({ ...form, sort_order: parseInt(e.target.value || "0", 10) })} />
+          <div className="form-control flex flex-col gap-2">
+            <label className="label-text font-medium">Sıra</label>
+            <input
+              type="number"
+              min="0"
+              step="1"
+              className="input input-bordered"
+              value={form.sort_order}
+              onChange={(e) => {
+                const parsed = parseInt(e.target.value, 10);
+                const next = Number.isNaN(parsed) ? 0 : Math.max(0, parsed);
+                setForm({ ...form, sort_order: next });
+              }}
+            />
+            <span className="text-xs text-base-content/60">0 veya pozitif bir tam sayı olmalı.</span>
           </div>
-          <label className="label cursor-pointer">
-            <span className="label-text">Aktif</span>
+          <label className="flex items-center justify-between cursor-pointer pt-1">
+            <span className="label-text font-medium">Aktif</span>
             <input type="checkbox" className="toggle toggle-primary" checked={form.is_active} onChange={(e) => setForm({ ...form, is_active: e.target.checked })} />
           </label>
           <div className="modal-action">

@@ -3,13 +3,13 @@ import { Link } from "react-router-dom";
 export default function NotFoundPage() {
   return (
     <>
-      <main className="grid h-screen place-items-center bg-white px-6 py-24 sm:py-32 lg:px-8">
+      <main className="grid h-screen place-items-center bg-base-100 px-6 py-24 sm:py-32 lg:px-8">
         <div className="text-center">
           <p className="text-base font-semibold text-indigo-600">404</p>
-          <h1 className="mt-4 text-5xl font-semibold tracking-tight text-balance text-gray-900 sm:text-7xl">
+          <h1 className="mt-4 text-5xl font-semibold tracking-tight text-balance text-base-content sm:text-7xl">
             Sayfa Bulunamadı
           </h1>
-          <p className="mt-6 text-lg font-medium text-pretty text-gray-500 sm:text-xl/8">
+          <p className="mt-6 text-lg font-medium text-pretty text-base-content/60 sm:text-xl/8">
             Üzgünüz, aradığınız sayfayı bulamadık.
           </p>
           <div className="mt-10 flex items-center justify-center gap-x-6">
@@ -21,7 +21,7 @@ export default function NotFoundPage() {
             </Link>
             <a
               href="mailto:canercakir6134@gmail.com"
-              className="text-sm font-semibold text-gray-900"
+              className="text-sm font-semibold text-base-content"
               target="_blank"
             >
               Bir hata mı olduğunu düşünüyorsunuz{" "}
