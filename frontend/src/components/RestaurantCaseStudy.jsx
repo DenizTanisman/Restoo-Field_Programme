@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { CheckCircle2, XCircle, Tag, ShoppingBasket } from 'lucide-react';
+import { TrendingDown, TrendingUp, ShoppingCart, Clock, AlertCircle, Sparkles } from 'lucide-react';
 import { api } from '../api/client';
 
 const RestaurantCaseStudy = () => {
@@ -40,7 +40,7 @@ const RestaurantCaseStudy = () => {
         <p className="text-base-content text-sm opacity-80">Müşterilerimizle çalışmadan önce ve sonra elde edilen sonuçlar</p>
       </div>
 
-      {/* Restoran navigasyonu — üstte */}
+      {/* Navigasyon */}
       <div className="flex justify-center gap-3 mb-6">
         {stories.map((_, num) => (
           <button
@@ -63,7 +63,7 @@ const RestaurantCaseStudy = () => {
         </div>
 
         <div className="p-6 md:p-8 flex flex-col gap-8">
-          {/* ÖNCESİ — üstte */}
+          {/* ÖNCESİ */}
           <div className="flex flex-col gap-4">
             <h4 className="text-center font-bold text-base-content text-xl">Öncesi</h4>
             <div className="rounded-3xl overflow-hidden h-[410px] shadow-md border border-base-300">
@@ -110,7 +110,7 @@ const RestaurantCaseStudy = () => {
             </div>
           </div>
 
-          {/* SONRASI — altta */}
+          {/* SONRASI */}
           <div className="flex flex-col gap-4">
             <h4 className="text-center font-bold text-base-content text-xl">Sonrası</h4>
             <div className="rounded-3xl overflow-hidden h-[410px] shadow-md border border-base-300">
