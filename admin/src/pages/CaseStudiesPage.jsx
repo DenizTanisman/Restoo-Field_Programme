@@ -197,7 +197,7 @@ export default function CaseStudiesPage() {
                 key: "is_active",
                 label: "Durum",
                 render: (r) => (
-                  <span className={`badge badge-sm ${r.is_active ? "badge-success" : "badge-ghost"}`}>
+                  <span className={`badge badge-sm ${r.is_active ? "badge-success badge-soft" : "badge-ghost"}`}>
                     {r.is_active ? "Aktif" : "Pasif"}
                   </span>
                 ),
@@ -207,15 +207,15 @@ export default function CaseStudiesPage() {
                 label: "İşlem",
                 render: (r) => (
                   <div className="flex gap-1">
-                    <button className="btn btn-xs" onClick={() => move(r.id, "up")}>↑</button>
-                    <button className="btn btn-xs" onClick={() => move(r.id, "down")}>↓</button>
-                    <button className="btn btn-xs" onClick={() => openEdit(r)}>Düzenle</button>
+                    <button className="btn btn-xs btn-soft" onClick={() => move(r.id, "up")}>↑</button>
+                    <button className="btn btn-xs btn-soft" onClick={() => move(r.id, "down")}>↓</button>
+                    <button className="btn btn-xs btn-soft" onClick={() => openEdit(r)}>Düzenle</button>
                     {r.is_active ? (
-                      <button className="btn btn-xs btn-warning" onClick={() => setConfirmId(r.id)}>Pasifleştir</button>
+                      <button className="btn btn-xs btn-warning btn-soft" onClick={() => setConfirmId(r.id)}>Pasifleştir</button>
                     ) : (
-                      <button className="btn btn-xs btn-success" onClick={() => toggleActive(r)}>Aktifleştir</button>
+                      <button className="btn btn-xs btn-success btn-soft" onClick={() => toggleActive(r)}>Aktifleştir</button>
                     )}
-                    <button className="btn btn-xs btn-error" onClick={() => setHardConfirm({ id: r.id, title: r.title })}>Sil</button>
+                    <button className="btn btn-xs btn-error btn-soft" onClick={() => setHardConfirm({ id: r.id, title: r.title })}>Sil</button>
                   </div>
                 ),
               },

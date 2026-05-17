@@ -36,8 +36,35 @@
   --color-error: oklch(65% 0.22 25);
 }
 
-/* Body fallback — eğer daisyUI semantic uygulanmıyorsa */
+/* Aydınlık tema — kontrastı artırmak için base-content'i yakın siyaha çekiyoruz.
+   Default daisyUI light: ~oklch(27%) gri — kullanıcı yazıların siyah olmasını istedi. */
+@plugin "daisyui/theme" {
+  name: "light";
+  color-scheme: light;
+
+  --color-base-100: oklch(100% 0 0);
+  --color-base-200: oklch(96% 0 0);
+  --color-base-300: oklch(92% 0 0);
+  --color-base-content: oklch(12% 0.02 250); /* yakın siyah — eskiden ~27% */
+
+  --color-primary: oklch(58% 0.20 35);
+  --color-primary-content: oklch(100% 0 0);
+  --color-secondary: oklch(55% 0.20 280);
+  --color-secondary-content: oklch(100% 0 0);
+  --color-accent: oklch(55% 0.18 180);
+  --color-accent-content: oklch(100% 0 0);
+
+  --color-neutral: oklch(22% 0.02 250);
+  --color-neutral-content: oklch(98% 0 0);
+
+  --color-info: oklch(58% 0.18 230);
+  --color-success: oklch(55% 0.18 150);
+  --color-warning: oklch(70% 0.18 80);
+  --color-error: oklch(55% 0.22 25);
+}
+
+/* html/body daisyUI'nın themed bg/color'unu otomatik kullanır — hardcoded vermiyoruz. */
 html, body {
-  background-color: oklch(20% 0.04 250);
-  color: oklch(92% 0.02 250);
+  background-color: var(--color-base-100);
+  color: var(--color-base-content);
 }
