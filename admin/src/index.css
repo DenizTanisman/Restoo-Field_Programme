@@ -35,7 +35,7 @@
 }
 
 html, body, #root {
-  height: 100%;
-  background-color: oklch(20% 0.04 250);
-  color: oklch(92% 0.02 250);
+  min-height: 100%;
+  background-color: var(--color-base-100);
+  color: var(--color-base-content);
 }

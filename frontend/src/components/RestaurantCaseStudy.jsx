@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { CheckCircle2, XCircle, Tag, ShoppingBasket } from 'lucide-react';
+import { TrendingDown, TrendingUp, ShoppingCart, Clock, AlertCircle, Sparkles } from 'lucide-react';
 import { api } from '../api/client';
 
 const RestaurantCaseStudy = () => {
@@ -40,7 +40,7 @@ const RestaurantCaseStudy = () => {
         <p className="text-base-content/60 text-sm">Müşterilerimizle çalışmadan önce ve sonra elde edilen sonuçlar</p>
       </div>
 
-      {/* Restoran navigasyonu — üstte */}
+      {/* Navigasyon */}
       <div className="flex justify-center gap-3 mb-6">
         {stories.map((_, num) => (
           <button
@@ -63,7 +63,7 @@ const RestaurantCaseStudy = () => {
         </div>
 
         <div className="p-6 md:p-8 flex flex-col gap-8">
-          {/* ÖNCESİ — üstte */}
+          {/* ÖNCESİ */}
           <div className="flex flex-col gap-4">
             <h4 className="text-center font-bold text-base-content text-xl">Öncesi</h4>
             <div className="rounded-3xl overflow-hidden h-[410px] shadow-md border border-base-300">
@@ -73,36 +73,44 @@ const RestaurantCaseStudy = () => {
                 <div className="w-full h-full bg-base-200 flex items-center justify-center text-base-content/50 text-sm">Görsel yok</div>
               )}
             </div>
-            <div className="bg-[#fff1f1] rounded-2xl p-5 space-y-4">
+
+            {/* Öncesi stats — turuncu/amber */}
+            <div className="bg-amber-50 border border-amber-200 rounded-2xl p-5 space-y-4">
               <div className="grid grid-cols-2 gap-4">
-                <div className="flex items-start gap-2">
-                  <Tag className="text-red-400 w-5 h-5 mt-1 shrink-0" />
+                <div className="flex items-start gap-3">
+                  <div className="bg-amber-100 p-2 rounded-xl">
+                    <Clock className="text-amber-600 w-5 h-5" />
+                  </div>
                   <div>
-                    <p className="text-[10px] font-bold text-base-content/60 uppercase tracking-wider">Günlük Sipariş</p>
-                    <p className="text-sm font-bold flex items-center gap-1">
-                      <CheckCircle2 className="w-3.5 h-3.5 text-red-400" /> {story.before.dailyOrder ?? "-"}
+                    <p className="text-[10px] font-bold text-base-content/50 uppercase tracking-wider mb-0.5">Günlük Sipariş</p>
+                    <p className="text-sm font-bold text-base-content flex items-center gap-1">
+                      <TrendingDown className="w-3.5 h-3.5 text-amber-500" />
+                      {story.before.dailyOrder ?? "-"}
                     </p>
                   </div>
                 </div>
-                <div className="flex items-start gap-2">
-                  <ShoppingBasket className="text-red-400 w-5 h-5 mt-1 shrink-0" />
+                <div className="flex items-start gap-3">
+                  <div className="bg-amber-100 p-2 rounded-xl">
+                    <ShoppingCart className="text-amber-600 w-5 h-5" />
+                  </div>
                   <div>
-                    <p className="text-[10px] font-bold text-base-content/60 uppercase tracking-wider">Ortalama Sepet</p>
-                    <p className="text-sm font-bold flex items-center gap-1">
-                      <CheckCircle2 className="w-3.5 h-3.5 text-red-400" /> {story.before.avgBasket ?? "-"}
+                    <p className="text-[10px] font-bold text-base-content/50 uppercase tracking-wider mb-0.5">Ortalama Sepet</p>
+                    <p className="text-sm font-bold text-base-content flex items-center gap-1">
+                      <TrendingDown className="w-3.5 h-3.5 text-amber-500" />
+                      {story.before.avgBasket ?? "-"}
                     </p>
                   </div>
                 </div>
               </div>
-              <div className="pt-3 border-t border-red-200">
+              <div className="pt-3 border-t border-amber-200">
                 <div className="flex items-center gap-2 mb-2">
-                  <XCircle className="text-red-500 w-5 h-5" />
+                  <AlertCircle className="text-amber-500 w-5 h-5" />
                   <span className="font-bold text-base-content">Şikayet</span>
                 </div>
-                <ul className="space-y-1 ml-7 text-xs text-base-content/70 italic">
+                <ul className="space-y-1.5 ml-7 text-xs text-base-content/70 italic">
                   {story.before.complaints.map((item, i) => (
                     <li key={i} className="flex items-center gap-2">
-                      <span className="w-1.5 h-1.5 bg-red-500 rounded-full"></span> {item}
+                      <span className="w-1.5 h-1.5 bg-amber-500 rounded-full shrink-0"></span> {item}
                     </li>
                   ))}
                 </ul>
@@ -110,7 +118,7 @@ const RestaurantCaseStudy = () => {
             </div>
           </div>
 
-          {/* SONRASI — altta */}
+          {/* SONRASI */}
           <div className="flex flex-col gap-4">
             <h4 className="text-center font-bold text-base-content text-xl">Sonrası</h4>
             <div className="rounded-3xl overflow-hidden h-[410px] shadow-md border border-base-300">
@@ -120,36 +128,44 @@ const RestaurantCaseStudy = () => {
                 <div className="w-full h-full bg-base-200 flex items-center justify-center text-base-content/50 text-sm">Görsel yok</div>
               )}
             </div>
-            <div className="bg-[#f0f9f4] rounded-2xl p-5 space-y-4">
+
+            {/* Sonrası stats — yeşil */}
+            <div className="bg-emerald-50 border border-emerald-200 rounded-2xl p-5 space-y-4">
               <div className="grid grid-cols-2 gap-4">
-                <div className="flex items-start gap-2">
-                  <Tag className="text-green-500 w-5 h-5 mt-1 shrink-0" />
+                <div className="flex items-start gap-3">
+                  <div className="bg-emerald-100 p-2 rounded-xl">
+                    <Clock className="text-emerald-600 w-5 h-5" />
+                  </div>
                   <div>
-                    <p className="text-[10px] font-bold text-base-content/60 uppercase tracking-wider">Günlük Sipariş</p>
-                    <p className="text-sm font-bold flex items-center gap-1">
-                      <CheckCircle2 className="w-3.5 h-3.5 text-green-500" /> {story.after.dailyOrder ?? "-"}
+                    <p className="text-[10px] font-bold text-base-content/50 uppercase tracking-wider mb-0.5">Günlük Sipariş</p>
+                    <p className="text-sm font-bold text-base-content flex items-center gap-1">
+                      <TrendingUp className="w-3.5 h-3.5 text-emerald-500" />
+                      {story.after.dailyOrder ?? "-"}
                     </p>
                   </div>
                 </div>
-                <div className="flex items-start gap-2">
-                  <ShoppingBasket className="text-green-500 w-5 h-5 mt-1 shrink-0" />
+                <div className="flex items-start gap-3">
+                  <div className="bg-emerald-100 p-2 rounded-xl">
+                    <ShoppingCart className="text-emerald-600 w-5 h-5" />
+                  </div>
                   <div>
-                    <p className="text-[10px] font-bold text-base-content/60 uppercase tracking-wider">Ortalama Sepet</p>
-                    <p className="text-sm font-bold flex items-center gap-1">
-                      <CheckCircle2 className="w-3.5 h-3.5 text-green-500" /> {story.after.avgBasket ?? "-"}
+                    <p className="text-[10px] font-bold text-base-content/50 uppercase tracking-wider mb-0.5">Ortalama Sepet</p>
+                    <p className="text-sm font-bold text-base-content flex items-center gap-1">
+                      <TrendingUp className="w-3.5 h-3.5 text-emerald-500" />
+                      {story.after.avgBasket ?? "-"}
                     </p>
                   </div>
                 </div>
               </div>
-              <div className="pt-3 border-t border-green-200">
+              <div className="pt-3 border-t border-emerald-200">
                 <div className="flex items-center gap-2 mb-2">
-                  <XCircle className="text-green-500 w-5 h-5 rotate-45" />
+                  <Sparkles className="text-emerald-500 w-5 h-5" />
                   <span className="font-bold text-base-content">İyileşmeler</span>
                 </div>
-                <ul className="space-y-1 ml-7 text-xs text-base-content/70 italic">
+                <ul className="space-y-1.5 ml-7 text-xs text-base-content/70 italic">
                   {story.after.improvements.map((item, i) => (
                     <li key={i} className="flex items-center gap-2">
-                      <span className="w-1.5 h-1.5 bg-green-500 rounded-full"></span> {item}
+                      <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full shrink-0"></span> {item}
                     </li>
                   ))}
                 </ul>

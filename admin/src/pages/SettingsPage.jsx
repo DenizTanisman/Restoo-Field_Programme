@@ -186,7 +186,13 @@ function TextArea({ label, value, onChange, rows = 3, className = "" }) {
   return (
     <label className={`form-control flex flex-col gap-1 ${className}`}>
       <span className="text-xs opacity-70">{label}</span>
-      <textarea className="textarea textarea-bordered textarea-sm" rows={rows} value={value || ""} onChange={(e) => onChange(e.target.value)} />
+      <textarea
+        className="textarea textarea-bordered textarea-sm"
+        rows={rows}
+        value={value || ""}
+        onChange={(e) => onChange(e.target.value)}
+        style={{ resize: "none", width: "100%" }}
+      />
     </label>
   );
 }

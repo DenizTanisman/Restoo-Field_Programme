@@ -31,6 +31,7 @@ export default function CaseStudiesPage() {
   const [districts, setDistricts] = useState([]);
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [lightbox, setLightbox] = useState(null); 
 
   const [editing, setEditing] = useState(null);
   const [form, setForm] = useState(EMPTY);
@@ -184,15 +185,19 @@ export default function CaseStudiesPage() {
               { key: "id", label: "ID" },
               { key: "title", label: "Başlık" },
               {
-                key: "before_image_url",
-                label: "Öncesi",
-                render: (r) => r.before_image_url ? <img src={r.before_image_url} alt="" className="w-12 h-12 object-cover rounded" /> : "—",
-              },
-              {
-                key: "after_image_url",
-                label: "Sonrası",
-                render: (r) => r.after_image_url ? <img src={r.after_image_url} alt="" className="w-12 h-12 object-cover rounded" /> : "—",
-              },
+                  key: "before_image_url",
+                  label: "Öncesi",
+                  render: (r) => r.before_image_url
+                    ? <img src={r.before_image_url} alt="" className="w-12 h-12 object-cover rounded cursor-pointer hover:opacity-80 transition-opacity" onClick={() => setLightbox(r.before_image_url)} />
+                    : "—",
+                },
+                {
+                  key: "after_image_url",
+                  label: "Sonrası",
+                  render: (r) => r.after_image_url
+                    ? <img src={r.after_image_url} alt="" className="w-12 h-12 object-cover rounded cursor-pointer hover:opacity-80 transition-opacity" onClick={() => setLightbox(r.after_image_url)} />
+                    : "—",
+                },
               {
                 key: "is_active",
                 label: "Durum",
@@ -343,6 +348,28 @@ export default function CaseStudiesPage() {
         onConfirm={hardRemove}
         onCancel={() => setHardConfirm(null)}
       />
+
+      {/* Lightbox */}
+      {lightbox && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/75"
+          onClick={() => setLightbox(null)}
+        >
+          <div className="relative max-w-xl p-2" onClick={(e) => e.stopPropagation()}>
+            <button
+              className="absolute -top-3 -right-3 btn btn-sm btn-circle btn-neutral z-10"
+              onClick={() => setLightbox(null)}
+            >
+              ✕
+            </button>
+            <img
+              src={lightbox}
+              alt=""
+              className="max-w-full max-h-[55vh] object-contain rounded-lg shadow-2xl"
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 }
