@@ -79,11 +79,11 @@ export default function SearchBar({
     <div ref={containerRef} className="w-full relative">
       <form
         onSubmit={handleSubmit}
-        className="w-full flex items-center gap-2 bg-base-200 rounded-lg px-3 py-3 text-zinc-900"
+        className="w-full flex items-center gap-2 bg-base-200 rounded-lg px-3 py-3 text-base-content"
       >
         <button
           type="submit"
-          className="text-zinc-700 hover:text-zinc-900 cursor-pointer flex items-center justify-center"
+          className="text-base-content/80 hover:text-base-content cursor-pointer flex items-center justify-center"
           aria-label="Ara"
         >
           <svg
@@ -109,7 +109,7 @@ export default function SearchBar({
           onFocus={() => query.trim() && suggestions.length > 0 && setOpen(true)}
           className="flex-1 bg-transparent outline-none border-0 focus:outline-none focus:ring-0"
         />
-        {loading && <span className="loading loading-spinner loading-xs text-zinc-500" />}
+        {loading && <span className="loading loading-spinner loading-xs text-base-content/60" />}
       </form>
 
       {open && (
@@ -119,7 +119,7 @@ export default function SearchBar({
               {loading ? "Aranıyor…" : "Sonuç bulunamadı"}
             </div>
           ) : (
-            <ul className="divide-y divide-gray-50">
+            <ul className="divide-y divide-base-300">
               {suggestions.map((r) => (
                 <li key={r.id}>
                   <button
@@ -129,8 +129,8 @@ export default function SearchBar({
                   >
                     <span className="text-lg">{r.category_emoji || "🍽️"}</span>
                     <div className="flex-1 min-w-0">
-                      <div className="font-medium text-zinc-900 truncate">{r.name}</div>
-                      <div className="text-xs text-zinc-500 truncate">
+                      <div className="font-medium text-base-content truncate">{r.name}</div>
+                      <div className="text-xs text-base-content/60 truncate">
                         {r.district_name}
                         {r.category_label ? ` · ${r.category_label}` : ""}
                       </div>

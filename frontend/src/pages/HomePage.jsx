@@ -30,24 +30,12 @@ export default function HomePage() {
   const [neighborhoodLoading, setNeighborhoodLoading] = useState(false);
   const [neighborhoodWarning, setNeighborhoodWarning] = useState(null);
 
-  // Filtre seçimine (ilçe/mahalle/kategori) göre eşleşen restoranları otomatik getir.
-  // Search aktifken devre dışı (search kendi sonuçlarını set ediyor).
+  // Restoran kartları sadece search ile görünür.
+  // İlçe/mahalle/kategori seçimi tek başına restoranları listelemez —
+  // sadece analytics/metrics kartlarını günceller. Search box'a yazınca veya
+  // restoran ismiyle arayınca o sonuçlar görünür.
   useEffect(() => {
-    if (searchQuery) return; // search sonuçları varken otomatik filter override yapmasın
-    if (!selectedDistrict && !selectedCategory) {
-      setRestaurants(null);
-      return;
-    }
-    let alive = true;
-    api
-      .listRestaurants({
-        districtId: selectedDistrict,
-        neighborhoodId: selectedNeighborhood,
-        categoryId: selectedCategory?.id,
-      })
-      .then((results) => { if (alive) setRestaurants(results); })
-      .catch(() => { if (alive) setRestaurants([]); });
-    return () => { alive = false; };
+    if (!searchQuery) setRestaurants(null);
   }, [selectedDistrict, selectedNeighborhood, selectedCategory, searchQuery]);
 
   // Helper: bir mahalle analitiğinin tamamen boş olup olmadığını anlar

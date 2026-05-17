@@ -30,14 +30,16 @@ export default function RestaurantCard({ restaurants }) {
               <p className="text-sm text-base-content/60 mt-1">{r.districtName}</p>
             </div>
 
-            {/* Platform satırları */}
+            {/* Platform satırları — geniş ekranda yan yana, dar ekranda alt alta */}
             {r.platforms && (
-              <div className="flex flex-col gap-3">
+              <div className="flex flex-col md:flex-row md:flex-wrap md:justify-around gap-4">
                 {r.platforms.map((platform, i) => (
-                  <div key={platform.name} className="flex items-center gap-4">
-                    {PLATFORM_ICONS[i]}
-                    <span className="text-2xl font-bold min-w-12">{platform.customers}</span>
-                    <span className="text-sm text-base-content/70">Aktif Müşteri</span>
+                  <div key={platform.name} className="flex items-center gap-3 md:flex-col md:gap-1 md:text-center md:flex-1 md:min-w-[140px]">
+                    <div className="shrink-0">{PLATFORM_ICONS[i]}</div>
+                    <div className="flex items-center gap-2 md:flex-col md:gap-0">
+                      <span className="text-2xl font-bold">{platform.customers}</span>
+                      <span className="text-xs text-base-content/70 whitespace-nowrap">Aktif Müşteri</span>
+                    </div>
                   </div>
                 ))}
               </div>

@@ -35,10 +35,8 @@ const EMPTY_METRICS = {
 const EMPTY = {
   name: "", district_id: "", neighborhood_id: "", category_id: "", is_active: true,
   platforms: [],
-  metrics_enabled: false,
   metrics: { ...EMPTY_METRICS },
   // analytics: platform_id -> { ad_budget, rates..., forecasts... }
-  analytics_enabled: false,
   analytics_by_platform: {},
 };
 
@@ -131,7 +129,6 @@ export default function RestaurantsPage() {
         platform_id: platforms.find((pl) => pl.name === p.name)?.id,
         customers: p.customers,
       })).filter((p) => p.platform_id),
-      metrics_enabled: !!m,
       metrics: m ? {
         cancel_rate: m.cancel_rate || 0,
         return_rate: m.return_rate || 0,
@@ -154,7 +151,6 @@ export default function RestaurantsPage() {
         negative_word_cloud_json: JSON.stringify(m.negative_word_cloud || [], null, 2),
         courier_comparison: m.courier_comparison && typeof m.courier_comparison === "object" ? { ...EMPTY_COURIER, ...m.courier_comparison } : EMPTY_COURIER,
       } : { ...EMPTY_METRICS },
-      analytics_enabled: (detail.analytics || []).length > 0,
       analytics_by_platform: analyticsByPlatform,
     });
     setEditing(r.id);
@@ -221,52 +217,53 @@ export default function RestaurantsPage() {
   const save = async (e) => {
     e.preventDefault();
     try {
-      // Metrics payload (JSON alanları parse et)
-      let metricsPayload = null;
-      if (form.metrics_enabled) {
-        try {
-          const m = form.metrics;
-          metricsPayload = {
-            cancel_rate: Number(m.cancel_rate) || 0,
-            return_rate: Number(m.return_rate) || 0,
-            cancel_reasons: JSON.parse(m.cancel_reasons_json || "[]"),
-            return_reasons: JSON.parse(m.return_reasons_json || "[]"),
-            area_performance_score: Number(m.area_performance_score) || 0,
-            area_rating: Number(m.area_rating) || 0,
-            highest_rating: Number(m.highest_rating) || 0,
-            lowest_rating: Number(m.lowest_rating) || 0,
-            avg_basket: Number(m.avg_basket) || 0,
-            avg_menu_price: Number(m.avg_menu_price) || 0,
-            avg_monthly_revenue: Number(m.avg_monthly_revenue) || 0,
-            courier_fee: Number(m.courier_fee) || 0,
-            hourly_heatmap: Array.isArray(m.hourly_heatmap) ? m.hourly_heatmap : EMPTY_HEATMAP,
-            negative_comment_total: parseInt(m.negative_comment_total, 10) || 0,
-            negative_comment_rate: Number(m.negative_comment_rate) || 0,
-            negative_avg_rating: Number(m.negative_avg_rating) || 0,
-            platform_negative_distribution: JSON.parse(m.platform_negative_distribution_json || "[]"),
-            rating_distribution: JSON.parse(m.rating_distribution_json || "[]"),
-            negative_word_cloud: JSON.parse(m.negative_word_cloud_json || "[]"),
-            courier_comparison: m.courier_comparison && typeof m.courier_comparison === "object" ? m.courier_comparison : EMPTY_COURIER,
-          };
-        } catch (err) {
-          toast.push("Metrik JSON alanlarında geçersiz format: " + err.message, "error");
-          return;
-        }
+      // Metrics payload — formdaki değerler her zaman gönderilir.
+      // Hepsi 0/boşsa cascade endpoint zaten _is_set ile boş sayar ve fallback'e düşer.
+      let metricsPayload;
+      try {
+        const m = form.metrics;
+        metricsPayload = {
+          cancel_rate: Number(m.cancel_rate) || 0,
+          return_rate: Number(m.return_rate) || 0,
+          cancel_reasons: JSON.parse(m.cancel_reasons_json || "[]"),
+          return_reasons: JSON.parse(m.return_reasons_json || "[]"),
+          area_performance_score: Number(m.area_performance_score) || 0,
+          area_rating: Number(m.area_rating) || 0,
+          highest_rating: Number(m.highest_rating) || 0,
+          lowest_rating: Number(m.lowest_rating) || 0,
+          avg_basket: Number(m.avg_basket) || 0,
+          avg_menu_price: Number(m.avg_menu_price) || 0,
+          avg_monthly_revenue: Number(m.avg_monthly_revenue) || 0,
+          courier_fee: Number(m.courier_fee) || 0,
+          hourly_heatmap: Array.isArray(m.hourly_heatmap) ? m.hourly_heatmap : EMPTY_HEATMAP,
+          negative_comment_total: parseInt(m.negative_comment_total, 10) || 0,
+          negative_comment_rate: Number(m.negative_comment_rate) || 0,
+          negative_avg_rating: Number(m.negative_avg_rating) || 0,
+          platform_negative_distribution: JSON.parse(m.platform_negative_distribution_json || "[]"),
+          rating_distribution: JSON.parse(m.rating_distribution_json || "[]"),
+          negative_word_cloud: JSON.parse(m.negative_word_cloud_json || "[]"),
+          courier_comparison: m.courier_comparison && typeof m.courier_comparison === "object" ? m.courier_comparison : EMPTY_COURIER,
+        };
+      } catch (err) {
+        toast.push("Metrik JSON alanlarında geçersiz format: " + err.message, "error");
+        return;
       }
-      // Analytics payload
-      const analyticsPayload = form.analytics_enabled
-        ? Object.entries(form.analytics_by_platform).map(([pid, a]) => ({
-            platform_id: parseInt(pid, 10),
-            ad_budget: Number(a.ad_budget) || 0,
-            campaign_rate: Number(a.campaign_rate) || 0,
-            coupon_rate: Number(a.coupon_rate) || 0,
-            flash_rate: Number(a.flash_rate) || 0,
-            joker_rate: Number(a.joker_rate) || 0,
-            daily_forecast: Number(a.daily_forecast) || 0,
-            monthly_forecast: Number(a.monthly_forecast) || 0,
-            yearly_forecast: Number(a.yearly_forecast) || 0,
-          }))
-        : [];
+      // Analytics payload — sadece kullanıcının seçtiği platformlar için gönderilir
+      // (eğer hepsi 0 ise yine de gönderilir; cascade endpoint boş kabul edip fallback'e düşer)
+      const analyticsPayload = form.platforms.map((pl) => {
+        const a = form.analytics_by_platform[pl.platform_id] || {};
+        return {
+          platform_id: pl.platform_id,
+          ad_budget: Number(a.ad_budget) || 0,
+          campaign_rate: Number(a.campaign_rate) || 0,
+          coupon_rate: Number(a.coupon_rate) || 0,
+          flash_rate: Number(a.flash_rate) || 0,
+          joker_rate: Number(a.joker_rate) || 0,
+          daily_forecast: Number(a.daily_forecast) || 0,
+          monthly_forecast: Number(a.monthly_forecast) || 0,
+          yearly_forecast: Number(a.yearly_forecast) || 0,
+        };
+      });
 
       const payload = {
         name: form.name,
@@ -533,25 +530,16 @@ export default function RestaurantsPage() {
           </div>
 
           {/* === Restoran-bazlı Analytics Override (per platform: budget + forecast) === */}
-          <div className="collapse collapse-arrow border border-base-300">
-            <input type="checkbox" />
-            <div className="collapse-title text-sm font-medium flex items-center gap-3">
-              <input
-                type="checkbox"
-                className="checkbox checkbox-sm"
-                checked={form.analytics_enabled}
-                onChange={(e) => setForm({ ...form, analytics_enabled: e.target.checked })}
-                onClick={(e) => e.stopPropagation()}
-              />
+          <div className="collapse collapse-arrow collapse-open border border-base-300">
+            <div className="collapse-title text-sm font-medium">
               Kampanya & Katılım + Tahmini Satış (per platform) — restoran özel
             </div>
             <div className="collapse-content">
               <p className="text-xs opacity-60 mb-3">
-                Burada girersen ana sayfa restoranı için bu değerleri gösterir; girmezsen mahalle/ilçe verisinden cascade ile çekilir.
+                Bu bölüm <b>opsiyonel</b>. Doldurursan ana sayfa restoranı için bu değerler gösterilir; boş bırakırsan mahalle/ilçe verisinden cascade ile çekilir.
               </p>
-              {!form.analytics_enabled && <p className="text-xs opacity-60">Yukarıdaki kutuyu işaretle.</p>}
-              {form.analytics_enabled && form.platforms.length === 0 && <p className="text-xs opacity-60">Önce platform seç.</p>}
-              {form.analytics_enabled && form.platforms.map((pl) => {
+              {form.platforms.length === 0 && <p className="text-xs opacity-60">Önce yukarıdan platform seç.</p>}
+              {form.platforms.map((pl) => {
                 const platform = platforms.find((pp) => pp.id === pl.platform_id);
                 const a = form.analytics_by_platform[pl.platform_id] || {};
                 const upd = (k, v) => setForm((f) => ({
@@ -578,24 +566,15 @@ export default function RestaurantsPage() {
           </div>
 
           {/* === Restoran-bazlı Metrics Override === */}
-          <div className="collapse collapse-arrow border border-base-300">
-            <input type="checkbox" />
-            <div className="collapse-title text-sm font-medium flex items-center gap-3">
-              <input
-                type="checkbox"
-                className="checkbox checkbox-sm"
-                checked={form.metrics_enabled}
-                onChange={(e) => setForm({ ...form, metrics_enabled: e.target.checked })}
-                onClick={(e) => e.stopPropagation()}
-              />
+          <div className="collapse collapse-arrow collapse-open border border-base-300">
+            <div className="collapse-title text-sm font-medium">
               Restoran Metrikleri — İptal/İade, Puan, Yorum, Saat Yoğunluğu, Kurye
             </div>
             <div className="collapse-content space-y-3">
               <p className="text-xs opacity-60">
-                Girersen bu değerler ana sayfada restoran için gösterilir; girmezsen mahalle/ilçe metriklerinden cascade ile çekilir.
+                Bu bölüm <b>opsiyonel</b>. Doldurursan ana sayfada restoran için bu değerler gösterilir; boş bırakırsan mahalle/ilçe metriklerinden cascade ile çekilir.
               </p>
-              {!form.metrics_enabled && <p className="text-xs opacity-60">Yukarıdaki kutuyu işaretle.</p>}
-              {form.metrics_enabled && (() => {
+              {(() => {
                 const m = form.metrics;
                 const updM = (k, v) => setForm((f) => ({ ...f, metrics: { ...f.metrics, [k]: v } }));
                 return (

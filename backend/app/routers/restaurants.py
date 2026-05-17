@@ -123,20 +123,27 @@ async def restaurant_dashboard(restaurant_id: int, db: AsyncSession = Depends(ge
     cat_id = r.category_id
 
     # === Metrics cascade ===
+    # Her seviyede önce kategori-spesifik dene, yoksa kategori-agnostik (category_id IS NULL — tüm kategoriler aggregate)
+    async def _fetch_one(model, area_filter):
+        # 1) cat=specific
+        row = (await db.execute(
+            select(model).where(area_filter, model.category_id == cat_id).order_by(model.period_date.desc())
+        )).scalars().first()
+        if row is not None:
+            return row
+        # 2) cat=NULL fallback
+        return (await db.execute(
+            select(model).where(area_filter, model.category_id.is_(None)).order_by(model.period_date.desc())
+        )).scalars().first()
+
     nb_metric = None
     if r.neighborhood_id is not None:
-        nb_metric = (await db.execute(
-            select(NeighborhoodMetrics).where(
-                NeighborhoodMetrics.neighborhood_id == r.neighborhood_id,
-                NeighborhoodMetrics.category_id == cat_id,
-            ).order_by(NeighborhoodMetrics.period_date.desc())
-        )).scalars().first()
-    d_metric = (await db.execute(
-        select(DistrictMetrics).where(
-            DistrictMetrics.district_id == r.district_id,
-            DistrictMetrics.category_id == cat_id,
-        ).order_by(DistrictMetrics.period_date.desc())
-    )).scalars().first()
+        nb_metric = await _fetch_one(
+            NeighborhoodMetrics, NeighborhoodMetrics.neighborhood_id == r.neighborhood_id
+        )
+    d_metric = await _fetch_one(
+        DistrictMetrics, DistrictMetrics.district_id == r.district_id
+    )
 
     metrics, _sources = _cascade_metrics(r.metrics, nb_metric, d_metric)
 
@@ -159,39 +166,45 @@ async def restaurant_dashboard(restaurant_id: int, db: AsyncSession = Depends(ge
     analytics_source = "restaurant" if r.analytics else "none"
     used_rows = r.analytics
 
-    if not used_rows and r.neighborhood_id is not None:
-        nb_rows = (await db.execute(
-            select(NeighborhoodAnalytics).where(
-                NeighborhoodAnalytics.neighborhood_id == r.neighborhood_id,
-                NeighborhoodAnalytics.category_id == cat_id,
-            )
+    async def _fetch_rows(model, area_filter):
+        # 1) cat-specific
+        rows = (await db.execute(
+            select(model).where(area_filter, model.category_id == cat_id)
         )).scalars().all()
+        if rows:
+            return rows
+        # 2) cat=NULL fallback (all-categories aggregate)
+        return (await db.execute(
+            select(model).where(area_filter, model.category_id.is_(None))
+        )).scalars().all()
+
+    if not used_rows and r.neighborhood_id is not None:
+        nb_rows = await _fetch_rows(
+            NeighborhoodAnalytics, NeighborhoodAnalytics.neighborhood_id == r.neighborhood_id
+        )
         if nb_rows:
             used_rows = nb_rows
             analytics_source = "neighborhood"
 
     if not used_rows:
-        d_rows = (await db.execute(
-            select(DistrictAnalytics).where(
-                DistrictAnalytics.district_id == r.district_id,
-                DistrictAnalytics.category_id == cat_id,
-            )
-        )).scalars().all()
+        d_rows = await _fetch_rows(
+            DistrictAnalytics, DistrictAnalytics.district_id == r.district_id
+        )
         if d_rows:
             used_rows = d_rows
             analytics_source = "district_fallback"
 
-    # platforms listesi (customers): source=restaurant ise her zaman RestaurantPlatform'dan
-    # (kullanıcı 3 platform için müşteri girdi ama belki sadece 1'i için budget detayı var)
+    # platforms listesi (customers): HER ZAMAN bu restoranın kendi RestaurantPlatform'undan.
+    # Kullanıcı bir restoran aratıp seçtiğinde, o restoranın kendi müşterileri görünmeli —
+    # area aggregate değil. Budget/forecast ise cascade'ten geliyor.
     platforms: list[PlatformCustomers] = []
-    if analytics_source == "restaurant" and rp_customers:
+    if rp_customers:
         for pid, customers in rp_customers.items():
-            platforms.append(PlatformCustomers(name=platform_map.get(pid, f"Platform {pid}"), customers=customers, restaurants=0))
-    else:
-        for row in used_rows or []:
-            pname = platform_map.get(row.platform_id, f"Platform {row.platform_id}")
-            customers = int(getattr(row, "customers", 0) or 0)
-            platforms.append(PlatformCustomers(name=pname, customers=customers, restaurants=0))
+            platforms.append(PlatformCustomers(
+                name=platform_map.get(pid, f"Platform {pid}"),
+                customers=customers,
+                restaurants=0,
+            ))
 
     # Budget + forecast: analytics satırlarından aggregate
     budget_acc = {"adBudget": 0, "campaignRate": 0, "couponRate": 0, "flashRate": 0, "jokerRate": 0}

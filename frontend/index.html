@@ -5,6 +5,17 @@
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Opencart Global</title>
+    <script>
+      // FOUC önleme: React mount olmadan önce localStorage'dan temayı oku
+      (function () {
+        try {
+          var saved = localStorage.getItem("opencard-theme");
+          var preferred = saved
+            || (window.matchMedia && window.matchMedia("(prefers-color-scheme: light)").matches ? "light" : "opencarddark");
+          document.documentElement.setAttribute("data-theme", preferred);
+        } catch (_) {}
+      })();
+    </script>
   </head>
   <body class="h-full">
     <div id="root"></div>

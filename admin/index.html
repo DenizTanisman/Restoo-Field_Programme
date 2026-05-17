@@ -4,6 +4,16 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>OpenCard Admin</title>
+    <script>
+      (function () {
+        try {
+          var saved = localStorage.getItem("opencard-theme");
+          var preferred = saved
+            || (window.matchMedia && window.matchMedia("(prefers-color-scheme: light)").matches ? "light" : "opencarddark");
+          document.documentElement.setAttribute("data-theme", preferred);
+        } catch (_) {}
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>

@@ -140,9 +140,12 @@ def write_csv(name: str, rows: list[dict], columns: list[str]) -> Path:
     return p
 
 
-def build_restaurants(districts: list[dict]) -> list[dict]:
+def build_restaurants(districts: list[dict], nb_by_district: dict[str, int] | None = None) -> list[dict]:
+    """Her ilçe için 5 sentetik restoran üret. Eğer `nb_by_district` verilirse
+    her restoranın `neighborhood_id`'si ilçesinin ilk mahallesine bağlanır."""
     rows = []
     rng = random.Random(42)
+    nb_by_district = nb_by_district or {}
     for d_idx, dist in enumerate(districts):
         used_names: set[str] = set()
         for c_idx, cat_id in enumerate(CATEGORIES_FOR_DISTRICT):
@@ -163,9 +166,11 @@ def build_restaurants(districts: list[dict]) -> list[dict]:
                 3: rng.randint(100, 320),  # Yemeksepeti
             }
             platforms = [{"platform_id": pid, "customers": customers[pid]} for pid in PLATFORM_IDS]
+            nb_id = nb_by_district.get(dist["id"])
             rows.append({
                 "name": name,
                 "district_id": dist["id"],
+                "neighborhood_id": str(nb_id) if nb_id is not None else "",
                 "category_id": cat_id,
                 "is_active": "true",
                 "platforms": json.dumps(platforms, ensure_ascii=False),
@@ -472,7 +477,7 @@ def main():
 
     # ---- CSV üret ----
     print("→ CSV üretiliyor synthetic_csves/")
-    REST_COLS = ["name", "district_id", "category_id", "is_active", "platforms"]
+    REST_COLS = ["name", "district_id", "neighborhood_id", "category_id", "is_active", "platforms"]
     COMP_COLS = ["district_id", "category_id", "platform_id", "period_date",
                  "min_basket", "avg_rating", "monthly_revenue", "delivery_type",
                  "discount_rate", "coupon_rate"]
@@ -495,7 +500,9 @@ def main():
     DM_COLS = ["district_id", *METRIC_BASE]
     NM_COLS = ["neighborhood_id", *METRIC_BASE]
 
-    rest_rows = build_restaurants(districts)
+    # Her ilçenin alfabetik ilk mahallesi — restoran-mahalle bağı için
+    nb_by_district = {n["district_id"]: n["id"] for n in neighborhoods}
+    rest_rows = build_restaurants(districts, nb_by_district)
     comp_rows = build_competitors(districts)
     da_rows = build_district_analytics(districts)
     na_rows = build_neighborhood_analytics(neighborhoods)
