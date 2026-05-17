@@ -143,20 +143,20 @@ export default function Kiyaslama({ districtName, neighborhoodName, metrics, bud
 
               <div className="flex-1">
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 2xl:grid-cols-4">
-                  <div className="flex flex-col items-center justify-center rounded-lg bg-pink-100 p-4 text-center">
-                    <span className="text-xs font-semibold text-base-content/70">Senin Puanın</span>
+                  <div className="flex flex-col items-center justify-center rounded-lg bg-error/20 border border-error/30 p-4 text-center">
+                    <span className="text-xs font-semibold text-base-content">Senin Puanın</span>
                     <strong className="text-xl text-base-content">? ⭐</strong>
                   </div>
-                  <div className="flex flex-col items-center justify-center rounded-lg bg-sky-100 p-4 text-center">
-                    <span className="text-xs font-semibold text-base-content/70">İlçe Ortalaması</span>
+                  <div className="flex flex-col items-center justify-center rounded-lg bg-info/20 border border-info/30 p-4 text-center">
+                    <span className="text-xs font-semibold text-base-content">İlçe Ortalaması</span>
                     <strong className="text-xl text-base-content">{fmtRating(m.area_rating)} ⭐</strong>
                   </div>
-                  <div className="flex flex-col items-center justify-center rounded-lg bg-green-100 p-4 text-center">
-                    <span className="text-xs font-semibold text-base-content/70">En Yüksek</span>
+                  <div className="flex flex-col items-center justify-center rounded-lg bg-success/20 border border-success/30 p-4 text-center">
+                    <span className="text-xs font-semibold text-base-content">En Yüksek</span>
                     <strong className="text-xl text-base-content">{fmtRating(m.highest_rating)} ⭐</strong>
                   </div>
-                  <div className="flex flex-col items-center justify-center rounded-lg bg-yellow-100 p-4 text-center">
-                    <span className="text-xs font-semibold text-base-content/70">En Düşük</span>
+                  <div className="flex flex-col items-center justify-center rounded-lg bg-warning/20 border border-warning/30 p-4 text-center">
+                    <span className="text-xs font-semibold text-base-content">En Düşük</span>
                     <strong className="text-xl text-base-content">{fmtRating(m.lowest_rating)} ⭐</strong>
                   </div>
                 </div>
@@ -220,9 +220,9 @@ export default function Kiyaslama({ districtName, neighborhoodName, metrics, bud
               </div>
 
               <div className="mt-4 space-y-4">
-                <DiscountBar label="İndirim Oranı" percent={Number(budget?.campaignRate) || 0} hint="İlçe Ortalaması" />
-                <DiscountBar label="Joker Kullanımı" percent={Number(budget?.jokerRate) || 0} hint="İlçe Ortalaması" />
-                <DiscountBar label="Kupon Kullanımı" percent={Number(budget?.couponRate) || 0} hint="İlçe Ortalaması" />
+                <DiscountBar label="İndirim Oranı" percent={Number(budget?.campaignRate) || 0} hint="Ort" />
+                <DiscountBar label="Joker Kullanımı" percent={Number(budget?.jokerRate) || 0} hint="Ort" />
+                <DiscountBar label="Kupon Kullanımı" percent={Number(budget?.couponRate) || 0} hint="Ort" />
               </div>
             </div>
           </div>
@@ -259,10 +259,10 @@ function CourierComparisonBlock({ comparison }) {
 }
 
 function CourierSide({ accent, title, data }) {
-  const ring = accent === "red" ? "border-red-300 bg-red-50" : "border-green-300 bg-green-50";
-  const text = accent === "red" ? "text-red-600" : "text-green-600";
-  const dot = accent === "red" ? "bg-red-500" : "bg-green-600";
-  const cell = accent === "red" ? "bg-red-100 border-red-200" : "bg-green-100 border-green-200";
+  const ring = accent === "red" ? "border-error/40 bg-error/10" : "border-success/40 bg-success/10";
+  const text = accent === "red" ? "text-error" : "text-success";
+  const dot = accent === "red" ? "bg-error" : "bg-success";
+  const cell = accent === "red" ? "bg-error/15 border-error/25" : "bg-success/15 border-success/25";
   return (
     <div className={`flex-1 rounded-xl border-2 ${ring} p-6`}>
       <h4 className={`mb-3 flex items-center gap-2 text-2xl font-extrabold uppercase tracking-wide ${text}`}>
@@ -294,13 +294,17 @@ function CourierSide({ accent, title, data }) {
 function DiscountBar({ label, percent, hint }) {
   const p = Math.max(0, Math.min(100, Number(percent) || 0));
   return (
-    <div className="flex items-center gap-4">
-      <span className="w-32 text-sm font-semibold text-base-content/70">{label}</span>
+    <div className="flex items-center gap-3">
+      <span className="w-32 shrink-0 text-sm font-semibold text-base-content">{label}</span>
       <div className="h-6 flex-1 overflow-hidden rounded-full bg-base-200">
-        <div className="flex h-full items-center rounded-full bg-green-500 pl-3 text-xs font-semibold text-white" style={{ width: `${p}%` }}>
-          {hint}: %{p.toFixed(0)}
-        </div>
+        <div
+          className="h-full rounded-full bg-success transition-all"
+          style={{ width: `${p}%` }}
+        />
       </div>
+      <span className="w-24 shrink-0 text-right text-xs font-semibold text-base-content">
+        {hint}: %{p.toFixed(0)}
+      </span>
     </div>
   );
 }

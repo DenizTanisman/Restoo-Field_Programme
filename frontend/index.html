@@ -7,9 +7,10 @@
     <title>Opencart Global</title>
     <script>
       // FOUC önleme: React mount olmadan önce localStorage'dan temayı oku
+      // Public ve admin ayrı anahtar kullanır.
       (function () {
         try {
-          var saved = localStorage.getItem("opencard-theme");
+          var saved = localStorage.getItem("opencard-theme-public");
           var preferred = saved
             || (window.matchMedia && window.matchMedia("(prefers-color-scheme: light)").matches ? "light" : "opencarddark");
           document.documentElement.setAttribute("data-theme", preferred);

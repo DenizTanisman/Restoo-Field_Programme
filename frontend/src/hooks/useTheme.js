@@ -2,8 +2,9 @@ import { useEffect, useState } from "react";
 
 // Tek bir tema state'i — "opencarddark" veya "light"
 // localStorage'da saklanır, sonraki ziyarette anında uygulanır.
+// Public ve admin AYRI anahtarlar kullanır — biri diğerinin tercihini ezmesin.
 
-const STORAGE_KEY = "opencard-theme";
+const STORAGE_KEY = "opencard-theme-public";
 const DARK = "opencarddark";
 const LIGHT = "light";
 

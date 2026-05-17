@@ -5,9 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>OpenCard Admin</title>
     <script>
+      // FOUC önleme: Admin için ayrı localStorage anahtarı (public'ten bağımsız).
       (function () {
         try {
-          var saved = localStorage.getItem("opencard-theme");
+          var saved = localStorage.getItem("opencard-theme-admin");
           var preferred = saved
             || (window.matchMedia && window.matchMedia("(prefers-color-scheme: light)").matches ? "light" : "opencarddark");
           document.documentElement.setAttribute("data-theme", preferred);

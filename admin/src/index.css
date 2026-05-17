@@ -34,8 +34,34 @@
   --color-error: oklch(65% 0.22 25);
 }
 
+/* Aydınlık tema — yazılar yakın siyah olsun ki admin'de okunması kolay olsun. */
+@plugin "daisyui/theme" {
+  name: "light";
+  color-scheme: light;
+
+  --color-base-100: oklch(100% 0 0);
+  --color-base-200: oklch(96% 0 0);
+  --color-base-300: oklch(92% 0 0);
+  --color-base-content: oklch(12% 0.02 250);
+
+  --color-primary: oklch(58% 0.20 35);
+  --color-primary-content: oklch(100% 0 0);
+  --color-secondary: oklch(55% 0.20 280);
+  --color-secondary-content: oklch(100% 0 0);
+  --color-accent: oklch(55% 0.18 180);
+  --color-accent-content: oklch(100% 0 0);
+
+  --color-neutral: oklch(22% 0.02 250);
+  --color-neutral-content: oklch(98% 0 0);
+
+  --color-info: oklch(58% 0.18 230);
+  --color-success: oklch(55% 0.18 150);
+  --color-warning: oklch(70% 0.18 80);
+  --color-error: oklch(55% 0.22 25);
+}
+
 html, body, #root {
-  min-height: 100%;
+  height: 100%;
   background-color: var(--color-base-100);
   color: var(--color-base-content);
 }

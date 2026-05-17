@@ -393,7 +393,7 @@ export default function RestaurantsPage() {
                   key: "is_active",
                   label: "Durum",
                   render: (r) => (
-                    <span className={`badge badge-sm ${r.is_active ? "badge-success" : "badge-ghost"}`}>
+                    <span className={`badge badge-sm ${r.is_active ? "badge-success badge-soft" : "badge-ghost"}`}>
                       {r.is_active ? "Aktif" : "Pasif"}
                     </span>
                   ),
@@ -403,15 +403,15 @@ export default function RestaurantsPage() {
                   label: "İşlem",
                   render: (r) => (
                     <div className="flex gap-1">
-                      <button className="btn btn-xs" onClick={() => openEdit(r)} disabled={openingEdit}>
+                      <button className="btn btn-xs btn-soft" onClick={() => openEdit(r)} disabled={openingEdit}>
                         {openingEdit ? "…" : "Düzenle"}
                       </button>
                       {r.is_active ? (
-                        <button className="btn btn-xs btn-warning" onClick={() => setConfirmId(r.id)}>Pasifleştir</button>
+                        <button className="btn btn-xs btn-warning btn-soft" onClick={() => setConfirmId(r.id)}>Pasifleştir</button>
                       ) : (
-                        <button className="btn btn-xs btn-success" onClick={() => reactivate(r.id)}>Aktifleştir</button>
+                        <button className="btn btn-xs btn-success btn-soft" onClick={() => reactivate(r.id)}>Aktifleştir</button>
                       )}
-                      <button className="btn btn-xs btn-error" onClick={() => setHardConfirm({ id: r.id, name: r.name })}>Sil</button>
+                      <button className="btn btn-xs btn-error btn-soft" onClick={() => setHardConfirm({ id: r.id, name: r.name })}>Sil</button>
                     </div>
                   ),
                 },
