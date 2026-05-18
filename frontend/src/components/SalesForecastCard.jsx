@@ -137,7 +137,7 @@ export default function SalesForecastCard({
             </div>
 
             {/* Bar chart */}
-            <div style={{ height: 160 }}>
+            <div className="select-none" style={{ height: 160 }}>
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={chartData} barCategoryGap="30%">
                   <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" vertical={false} />

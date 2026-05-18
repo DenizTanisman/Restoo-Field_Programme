@@ -1,5 +1,5 @@
-import { useEffect, useState } from "react";
-import { analyticsApi, metricsApi } from "../api/analytics";
+import { useEffect, useRef, useState } from "react";
+import { analyticsApi, metricsApi, dataEntryApi } from "../api/analytics";
 import { districtsApi } from "../api/districts";
 import { categoriesApi } from "../api/categories";
 import { platformsApi } from "../api/platforms";
@@ -7,6 +7,31 @@ import { API_URL } from "../api/client";
 import { useToast } from "../components/ui/Toast";
 import HeatmapEditor from "../components/ui/HeatmapEditor";
 import CourierComparisonEditor from "../components/ui/CourierComparisonEditor";
+
+// Yeni birleşik CSV formatı için örnek satırlar — kullanıcı bunları indirebilir, doldurur, geri yükler.
+const SAMPLE_DISTRICT_CSV = `scope,district_id,category,period_date,platform,customers,ad_budget,campaign_rate,coupon_rate,flash_rate,joker_rate,daily_forecast,monthly_forecast,yearly_forecast,cancel_rate,return_rate,cancel_reasons_json,return_reasons_json,area_performance_score,area_rating,highest_rating,lowest_rating,avg_basket,avg_menu_price,avg_monthly_revenue,courier_fee,hourly_heatmap_json,negative_comment_total,negative_comment_rate,negative_avg_rating,platform_negative_distribution_json,rating_distribution_json,negative_word_cloud_json,courier_comparison_json
+district,34-fatih,,2026-05-01,Yemeksepeti,2273,43157,30.0,36.1,29.4,47.8,11747,357884,7507349,17.7,11.7,"[{""label"":""Uzun bekleme"",""percent"":4.5,""color"":""#EE4444""}]","[{""label"":""Soğuk Geldi"",""percent"":12.8,""color"":""#A65EEA""}]",86.2,4.03,4.59,3.73,130,226,496232,22,"[[5,5,4,5,5,4,5,8,15,19,28,63,77,65,44,36,36,44,83,96,86,42,25,9],[5,4,5,4,5,4,5,9,16,21,26,54,73,67,54,35,37,43,81,91,69,54,23,9],[5,4,5,4,5,5,4,9,13,17,32,65,80,64,50,38,31,50,80,73,82,53,22,10],[5,4,5,4,4,5,5,10,13,19,27,62,88,61,53,34,39,53,81,90,70,51,27,9],[5,5,5,5,5,5,5,9,16,18,28,59,83,72,42,34,33,52,84,78,73,52,26,9],[6,6,6,6,5,5,5,13,18,23,31,73,100,82,56,52,40,60,81,100,85,52,27,13],[5,5,6,6,5,6,6,10,19,21,33,71,100,93,54,45,37,63,82,99,79,62,33,11]]",2206,22.9,2.42,"[{""platform_id"":1,""percent"":31.9}]","[{""stars"":5,""percent"":16.8,""count"":1034}]","[{""text"":""Geç"",""weight"":5}]","{""restaurant_courier"":{""fee"":22,""avg_cost"":34.79,""monthly_revenue"":5114,""churn_label"":""YÜKSEK""},""own_courier"":{""fee"":0,""avg_cost"":33.27,""monthly_revenue"":1060128,""churn_label"":""DÜŞÜK""}}"
+district,34-fatih,,2026-05-01,Trendyol,1820,38000,28.0,32.0,25.0,40.0,9500,290000,6100000,,,,,,,,,,,,,,,,,,,,
+district,34-fatih,Kebap,2026-05-01,Yemeksepeti,1100,22000,31.0,35.0,30.0,45.0,5800,177000,3720000,15.5,9.8,"[]","[]",88.0,4.20,4.65,3.80,140,235,510000,22,"[]",1150,18.5,2.30,"[]","[]","[]","{}"
+`;
+
+const SAMPLE_NEIGHBORHOOD_CSV = `scope,district_id,neighborhood,category,period_date,platform,customers,ad_budget,campaign_rate,coupon_rate,flash_rate,joker_rate,daily_forecast,monthly_forecast,yearly_forecast,cancel_rate,return_rate,cancel_reasons_json,return_reasons_json,area_performance_score,area_rating,highest_rating,lowest_rating,avg_basket,avg_menu_price,avg_monthly_revenue,courier_fee,hourly_heatmap_json,negative_comment_total,negative_comment_rate,negative_avg_rating,platform_negative_distribution_json,rating_distribution_json,negative_word_cloud_json,courier_comparison_json
+neighborhood,34-fatih,Aksaray,,2026-05-01,Yemeksepeti,1274,74922,46.9,38.2,39.4,34.8,9046,325837,5952758,9.9,4.8,"[]","[]",89.2,3.99,4.69,3.85,112,145,1270914,18,"[]",661,29.5,3.0,"[]","[]","[]","{}"
+neighborhood,34-fatih,Aksaray,Kebap,2026-05-01,Yemeksepeti,800,45000,42.0,35.0,38.0,32.0,6500,210000,4100000,11.2,5.5,"[]","[]",87.0,4.05,4.55,3.70,120,160,890000,18,"[]",420,22.0,3.1,"[]","[]","[]","{}"
+neighborhood,34-besiktas,Levent,Pizza,2026-05-01,Trendyol,950,55000,40.0,38.0,35.0,42.0,7800,250000,5800000,8.5,4.0,"[]","[]",91.5,4.30,4.75,3.95,180,240,1450000,16,"[]",380,18.5,2.80,"[]","[]","[]","{}"
+`;
+
+function downloadFile(filename, content) {
+  const blob = new Blob([content], { type: "text/csv;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
 
 // Public dashboard endpoint'inden customer dağılımını çek (restoranlardan summed)
 async function fetchPublicCustomers({ scopeType, districtId, neighborhoodId, categoryId }) {
@@ -76,6 +101,52 @@ export default function DataEntryPage() {
   const [restaurantCustomers, setRestaurantCustomers] = useState({}); // { platform_id: {customers, restaurants} } — read-only
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [csvBusy, setCsvBusy] = useState(false);
+
+  // Yerel CSV import butonu — toast/loadData kapamasıyla
+  function CsvImportBtn({ label, scope }) {
+    const ref = useRef(null);
+    return (
+      <>
+        <input
+          ref={ref}
+          type="file"
+          accept=".csv"
+          className="hidden"
+          onChange={async (e) => {
+            const f = e.target.files?.[0];
+            if (!f) return;
+            setCsvBusy(true);
+            try {
+              const res = await dataEntryApi.importCsv(scope, f);
+              const msg = `${res.metrics_upserted} metric · ${res.analytics_upserted} analytics yüklendi`;
+              if (res.skipped?.length) {
+                toast.push(`${msg} — ${res.skipped.length} satır atlandı (konsola bakın)`, "warning");
+                console.warn("CSV skipped rows:", res.skipped);
+              } else {
+                toast.push(msg, "success");
+              }
+              // Aynı kapsam seçiliyse verilen veriyi tekrar yükle
+              if (scopeReady) loadData();
+            } catch (err) {
+              toast.push(err.message, "error");
+            } finally {
+              setCsvBusy(false);
+              if (ref.current) ref.current.value = "";
+            }
+          }}
+        />
+        <button
+          type="button"
+          className="btn btn-xs btn-primary btn-soft"
+          disabled={csvBusy}
+          onClick={() => ref.current?.click()}
+        >
+          {csvBusy ? "Yükleniyor…" : label}
+        </button>
+      </>
+    );
+  }
 
   // İlk veri yükle
   useEffect(() => {
@@ -284,13 +355,35 @@ export default function DataEntryPage() {
               <h2 className="card-title">Veri Girişi</h2>
               <p className="text-xs opacity-60">Ana sayfa kartlarıyla birebir aynı düzen — burada girdiğin her şey orada görünür.</p>
             </div>
-            <div className="flex gap-2">
-              <button className="btn btn-sm" onClick={loadData} disabled={loading || !scopeReady}>
-                {loading ? "Yükleniyor…" : "↻ Mevcut veriyi getir"}
+            <div className="flex gap-2 flex-wrap">
+              <button className="btn btn-sm btn-soft" onClick={loadData} disabled={loading || !scopeReady}>
+                {loading ? "Yükleniyor…" : "↻ Veriyi getir"}
               </button>
               <button className="btn btn-sm btn-primary" onClick={save} disabled={saving || !scopeReady}>
-                {saving ? "Kaydediliyor…" : "Hepsini Kaydet"}
+                {saving ? "Kaydediliyor…" : "💾 Veriyi kaydet"}
               </button>
+            </div>
+          </div>
+
+          {/* CSV import + örnek indirme */}
+          <div className="mt-3 p-3 rounded-lg border border-base-300 bg-base-200/50">
+            <div className="flex justify-between items-center mb-2">
+              <h3 className="text-sm font-semibold">📥 CSV İmport</h3>
+              <p className="text-xs opacity-60">İlçe veya Mahalle bazlı toplu veri yükle</p>
+            </div>
+            <div className="flex flex-wrap gap-2 items-center">
+              <CsvImportBtn label="📁 İlçe CSV içeri aktar" scope="district" />
+              <CsvImportBtn label="📁 Mahalle CSV içeri aktar" scope="neighborhood" />
+              <button
+                type="button"
+                className="btn btn-xs btn-ghost"
+                onClick={() => downloadFile("district_data_ornek.csv", SAMPLE_DISTRICT_CSV)}
+              >📄 İlçe Örnek CSV indir</button>
+              <button
+                type="button"
+                className="btn btn-xs btn-ghost"
+                onClick={() => downloadFile("neighborhood_data_ornek.csv", SAMPLE_NEIGHBORHOOD_CSV)}
+              >📄 Mahalle Örnek CSV indir</button>
             </div>
           </div>
 

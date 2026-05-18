@@ -20,9 +20,9 @@ function ScoreCircle({ value, max = 100, color }) {
     maintainAspectRatio: false,
   };
   return (
-    <div className="relative w-28 h-28">
+    <div className="relative w-44 h-44">
       <Doughnut data={data} options={options} />
-      <div className="absolute inset-0 flex items-center justify-center font-bold text-2xl text-base-content">
+      <div className="absolute inset-0 flex items-center justify-center font-bold text-3xl text-base-content">
         {value === null || value === undefined ? "?" : value}
       </div>
     </div>
@@ -33,17 +33,17 @@ export default function GeneralPerformanceScore({ myScore = null, areaScore = 78
   return (
     <div className="card bg-base-100 shadow-md rounded-2xl h-full">
       <div className="card-body p-5">
-        <h3 className="text-base font-semibold text-base-content mb-5 text-center">
+        <h3 className="text-xs font-bold text-base-content/60 mb-4 uppercase tracking-wider text-center">
           Genel Performans Skoru
         </h3>
-        <div className="flex flex-col items-center justify-center gap-6 flex-1">
+        <div className="flex flex-col items-center gap-5">
           <div className="text-center">
             <ScoreCircle value={myScore} color="#ef4444" />
-            <p className="text-sm font-semibold mt-3 text-base-content/70">Senin Skorun</p>
+            <p className="text-xs font-semibold mt-2 text-base-content/80 uppercase tracking-wider">Senin Skorun</p>
           </div>
           <div className="text-center">
             <ScoreCircle value={areaScore} color="#22c55e" />
-            <p className="text-sm font-semibold mt-3 text-base-content/70">İlçe Ort.</p>
+            <p className="text-xs font-semibold mt-2 text-base-content/80 uppercase tracking-wider">İlçe Ort.</p>
           </div>
         </div>
       </div>

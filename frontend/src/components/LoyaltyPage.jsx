@@ -37,7 +37,7 @@ export default function SadakatPage() {
   const cards = Array.isArray(v.loyalty_feature_cards) ? v.loyalty_feature_cards : [];
 
   return (
-    <div className="bg-base-100 rounded-3xl overflow-hidden">
+    <div className="bg-base-100 rounded-3xl overflow-hidden flex flex-col h-full">
       {/* HERO */}
       <section className="relative overflow-hidden px-6 py-12 text-center">
         <div className="pointer-events-none absolute inset-0">

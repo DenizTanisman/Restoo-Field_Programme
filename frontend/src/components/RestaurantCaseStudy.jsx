@@ -34,12 +34,48 @@ const RestaurantCaseStudy = () => {
   const story = stories[activeIndex] ?? stories[0];
 
   return (
-    <div className="bg-base-200 py-10 px-4 font-sans rounded-3xl">
-      <div className="text-center mb-6">
-        <h2 className="text-3xl font-bold text-base-content mb-1">Başarı Hikayeleri</h2>
-        <p className="text-base-content text-sm opacity-80">Müşterilerimizle çalışmadan önce ve sonra elde edilen sonuçlar</p>
-      </div>
+    <div className="bg-base-100 rounded-3xl overflow-hidden font-sans flex flex-col h-full">
+      {/* HERO — Sadakat sayfasındakine benzer */}
+      <section className="relative overflow-hidden px-6 py-12 text-center">
+        <div className="pointer-events-none absolute inset-0">
+          <img
+            src="https://images.unsplash.com/photo-1414235077428-338989a2e8c0?auto=format&fit=crop&w=1800&q=80"
+            alt=""
+            className="h-full w-full scale-105 object-cover opacity-60"
+          />
+          <div className="absolute inset-0 bg-gradient-to-br from-base-100/70 via-base-100/55 to-base-200/70" />
+        </div>
+        <div className="relative mx-auto max-w-4xl">
+          <div className="relative z-10 rounded-3xl bg-base-100/20 px-4 py-10 sm:px-8">
+            <span className="badge badge-primary badge-outline mb-4 text-xs font-semibold tracking-widest uppercase">
+              Başarı Hikayeleri
+            </span>
+            <h1 className="mb-4 text-4xl font-black leading-tight sm:text-5xl">
+              Önceki kaos,<br />
+              <span className="text-primary">sonraki istikrar.</span>
+            </h1>
+            <p className="mx-auto mb-8 max-w-xl text-base font-medium text-base-content/70 sm:text-lg">
+              Müşterilerimizle çalışmadan önce ve sonra elde edilen sonuçlar — gerçek
+              restoranlar, gerçek vakalar. Hangi adımları attık, hangi metrikler değişti?
+              Aşağıdaki hikayeler tek tek anlatıyor.
+            </p>
+            <div className="flex flex-wrap justify-center gap-3">
+              <button
+                className="btn btn-primary btn-lg w-full sm:w-auto"
+                onClick={() =>
+                  document
+                    .getElementById("basari-hikayeleri-list")
+                    ?.scrollIntoView({ behavior: "smooth", block: "start" })
+                }
+              >
+                Hikayeleri Gör
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
 
+      <div id="basari-hikayeleri-list" className="bg-base-200 p-6 flex-1 flex flex-col">
       {/* Restoran navigasyonu — üstte */}
       <div className="flex justify-center gap-3 mb-6">
         {stories.map((_, num) => (
@@ -157,6 +193,7 @@ const RestaurantCaseStudy = () => {
             </div>
           </div>
         </div>
+      </div>
       </div>
     </div>
   );

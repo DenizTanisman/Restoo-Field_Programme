@@ -57,3 +57,15 @@ export const metricsApi = {
     upsert: (data) => request("/admin/metrics/site-settings", { method: "POST", body: data }),
   },
 };
+
+// Birleşik Veri Girişi endpoint'leri (yeni format)
+export const dataEntryApi = {
+  importCsv: (scope, file) => postCsv(`/admin/data-entry/csv/import?scope=${encodeURIComponent(scope)}`, file),
+  fetch: ({ scope, districtId, neighborhoodId, categoryId }) => {
+    const p = new URLSearchParams({ scope, district_id: districtId });
+    if (neighborhoodId) p.set("neighborhood_id", neighborhoodId);
+    if (categoryId) p.set("category_id", categoryId);
+    return request(`/admin/data-entry/fetch?${p}`);
+  },
+  save: (payload) => request("/admin/data-entry/save", { method: "POST", body: payload }),
+};

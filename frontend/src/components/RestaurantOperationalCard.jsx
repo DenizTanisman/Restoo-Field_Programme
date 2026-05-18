@@ -1,8 +1,8 @@
 import React from "react";
 
 const TITLES = {
-  cancel: { title: "İPTAL SEBEPLERİ", centerLabel: "Toplam İptal", chartOnLeft: true },
-  return: { title: "İADE SEBEPLERİ", centerLabel: "Toplam İade", chartOnLeft: false },
+  cancel: { title: "İPTAL SEBEPLERİ", centerLabel: "Toplam İptal" },
+  return: { title: "İADE SEBEPLERİ", centerLabel: "Toplam İade" },
 };
 
 function makeConicGradient(items) {
@@ -44,20 +44,20 @@ export default function RestaurantOperationalCard({ type, totalRate, reasons }) 
   );
 
   const Legend = (
-    <div className="flex-1 flex flex-col justify-center gap-3 min-w-0">
+    <div className="w-full max-w-xs flex flex-col gap-2.5">
       {items.length === 0 && (
-        <p className="text-xs text-base-content/50 italic">Sebep verisi yok — admin panelinden ekle</p>
+        <p className="text-xs text-base-content/50 italic text-center">Sebep verisi yok — admin panelinden ekle</p>
       )}
       {items.map((item, idx) => (
         <div key={`${item.label}-${idx}`} className="flex items-center justify-between gap-3">
-          <div className="flex items-center gap-3 min-w-0">
+          <div className="flex items-center gap-2 min-w-0">
             <span
-              className="w-4 h-4 rounded-md shrink-0 shadow-sm"
+              className="w-3 h-3 rounded-sm shrink-0 shadow-sm"
               style={{ background: item.color || "#cbd5e1" }}
             />
-            <span className="text-base-content/70 font-semibold text-sm truncate">{item.label || "—"}</span>
+            <span className="text-base-content/80 font-semibold text-xs truncate">{item.label || "—"}</span>
           </div>
-          <span className="text-base-content font-bold text-lg font-mono shrink-0">%{Number(item.percent) || 0}</span>
+          <span className="text-base-content font-bold text-sm font-mono shrink-0">%{Number(item.percent) || 0}</span>
         </div>
       ))}
     </div>
@@ -66,10 +66,10 @@ export default function RestaurantOperationalCard({ type, totalRate, reasons }) 
   return (
     <div className="card bg-base-100 shadow-md rounded-2xl h-full">
       <div className="card-body p-5">
-        <h3 className="text-xs font-bold text-base-content/60 mb-6 uppercase tracking-wider">
+        <h3 className="text-xs font-bold text-base-content/60 mb-4 uppercase tracking-wider text-center">
           {cfg.title}
         </h3>
-        <div className={`flex flex-col items-center gap-6 2xl:items-center 2xl:gap-8 ${cfg.chartOnLeft ? "2xl:flex-row" : "2xl:flex-row-reverse"}`}>
+        <div className="flex flex-col items-center gap-5">
           {Chart}
           {Legend}
         </div>

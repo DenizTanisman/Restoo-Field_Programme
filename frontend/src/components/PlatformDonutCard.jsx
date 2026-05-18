@@ -93,7 +93,7 @@ export default function PlatformDonutCard({ districtName, categoryLabel, platfor
         {/* Chart — her zaman görünür; veri yokken boş gri donut */}
         {!loading && !error && (
           <>
-            <div className="relative" style={{ height: 220 }}>
+            <div className="relative select-none" style={{ height: 220 }}>
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
                   <Pie

@@ -7,6 +7,7 @@ from . import (
     applications,
     case_studies,
     categories,
+    data_entry,
     districts,
     metrics,
     platforms,
@@ -30,3 +31,4 @@ admin_router.include_router(applications.router)
 admin_router.include_router(analytics.router)
 admin_router.include_router(metrics.router)
 admin_router.include_router(upload.router)
+admin_router.include_router(data_entry.router)

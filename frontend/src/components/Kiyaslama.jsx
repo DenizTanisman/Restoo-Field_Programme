@@ -1,6 +1,7 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import SalesHourHeatmap from "./SalesHourHeatmap";
 import CustomerRatingCompare from "./CustomerRatingCompare";
+import { api } from "../api/client";
 
 function VsCompareCard({ icon, title, subtitle, myValue, areaValue, areaLabel = "İLÇE ORTALAMASI", footerLabel = "Menü Başına" }) {
   return (
@@ -39,7 +40,7 @@ function VsCompareCard({ icon, title, subtitle, myValue, areaValue, areaLabel = 
 const fmtTL = (v) => `${(Number(v) || 0).toLocaleString("tr-TR")} ₺`;
 const fmtRating = (v) => (Number(v) || 0).toFixed(1);
 
-export default function Kiyaslama({ districtName, neighborhoodName, metrics, budget }) {
+export default function Kiyaslama({ districtName, neighborhoodName, metrics, budget, categoryId }) {
   const subtitle = neighborhoodName
     ? `${districtName} · ${neighborhoodName} kıyaslaması`
     : districtName
@@ -48,6 +49,16 @@ export default function Kiyaslama({ districtName, neighborhoodName, metrics, bud
 
   const m = metrics || {};
   const heatmap = Array.isArray(m.hourly_heatmap) && m.hourly_heatmap.length === 7 ? m.hourly_heatmap : null;
+
+  // İstanbul-geneli ısı haritası: tüm ilçelerin son periodlarının aggregate ortalaması
+  const [istanbulHeatmap, setIstanbulHeatmap] = useState(null);
+  useEffect(() => {
+    let alive = true;
+    api.getIstanbulHeatmap(categoryId ?? null)
+      .then((res) => { if (alive) setIstanbulHeatmap(Array.isArray(res?.heatmap) && res.heatmap.length === 7 ? res.heatmap : null); })
+      .catch(() => { if (alive) setIstanbulHeatmap(null); });
+    return () => { alive = false; };
+  }, [categoryId]);
 
   return (
     <div className="font-sans">
@@ -87,16 +98,16 @@ export default function Kiyaslama({ districtName, neighborhoodName, metrics, bud
 
           <div className="grid grid-cols-1 gap-5 xl:grid-cols-2">
             <SalesHourHeatmap
-              title="Satış Saatleri Yoğunluğu (İlçe)"
-              subtitle="Haftalık ortalama saatlik yoğunluk"
-              data={heatmap}
-              colorRgb="239, 68, 68"
+              title="Satış Saatleri Yoğunluğu (İstanbul)"
+              subtitle="Tüm ilçeler aggregate — haftalık saatlik yoğunluk"
+              data={istanbulHeatmap}
+              colorRgb="59, 130, 246"
             />
             <SalesHourHeatmap
-              title="Satış Saatleri Yoğunluğu (Restoran)"
-              subtitle="Senin haftalık saatlik yoğunluğun"
-              data={null}
-              colorRgb="59, 130, 246"
+              title="Satış Saatleri Yoğunluğu (İlçe)"
+              subtitle={districtName ? `${districtName} — haftalık saatlik yoğunluk` : "Haftalık saatlik yoğunluk"}
+              data={heatmap}
+              colorRgb="239, 68, 68"
             />
           </div>
 
@@ -258,33 +269,35 @@ function CourierComparisonBlock({ comparison }) {
   );
 }
 
+const fmtNum = (v) => (Number(v) || 0).toLocaleString("tr-TR");
+
 function CourierSide({ accent, title, data }) {
   const ring = accent === "red" ? "border-error/40 bg-error/10" : "border-success/40 bg-success/10";
   const text = accent === "red" ? "text-error" : "text-success";
   const dot = accent === "red" ? "bg-error" : "bg-success";
   const cell = accent === "red" ? "bg-error/15 border-error/25" : "bg-success/15 border-success/25";
   return (
-    <div className={`flex-1 rounded-xl border-2 ${ring} p-6`}>
-      <h4 className={`mb-3 flex items-center gap-2 text-2xl font-extrabold uppercase tracking-wide ${text}`}>
+    <div className={`flex-1 rounded-xl border-2 ${ring} p-5`}>
+      <h4 className={`mb-3 flex items-center gap-2 text-xl font-extrabold uppercase tracking-wide ${text}`}>
         <span className={`h-2.5 w-2.5 rounded-full ${dot}`}></span>
         {title}
       </h4>
-      <div className="mt-5 grid grid-cols-1 gap-4 sm:grid-cols-2 2xl:grid-cols-4">
+      <div className="mt-4 grid grid-cols-2 gap-3">
         <div className={`rounded-lg p-3 text-center border ${cell}`}>
           <span className="text-[10px] font-bold uppercase text-base-content/60">KURYE ÜCRETİ</span>
-          <h2 className={`mt-1 text-lg lg:text-xl 2xl:text-2xl font-extrabold ${text} whitespace-nowrap`}>{fmtTL(data.fee)}</h2>
+          <h2 className={`mt-1 text-base lg:text-lg font-extrabold ${text} whitespace-nowrap`}>{fmtNum(data.fee)}</h2>
         </div>
         <div className={`rounded-lg p-3 text-center border ${cell}`}>
           <span className="text-[10px] font-bold uppercase text-base-content/60">ORT. MALİYET</span>
-          <h2 className={`mt-1 text-lg lg:text-xl 2xl:text-2xl font-extrabold ${text} whitespace-nowrap`}>{fmtTL(data.avg_cost)}</h2>
+          <h2 className={`mt-1 text-base lg:text-lg font-extrabold ${text} whitespace-nowrap`}>{fmtNum(data.avg_cost)}</h2>
         </div>
         <div className={`rounded-lg p-3 text-center border ${cell}`}>
           <span className="text-[10px] font-bold uppercase text-base-content/60">AYLIK CİRO</span>
-          <h2 className={`mt-1 text-lg lg:text-xl 2xl:text-2xl font-extrabold ${text} whitespace-nowrap`}>{fmtTL(data.monthly_revenue)}</h2>
+          <h2 className={`mt-1 text-base lg:text-lg font-extrabold ${text} whitespace-nowrap`}>{fmtNum(data.monthly_revenue)}</h2>
         </div>
         <div className={`rounded-lg p-3 text-center border ${cell}`}>
           <span className="text-[10px] font-bold uppercase text-base-content/60">VAZGEÇME</span>
-          <h2 className={`mt-1 text-lg lg:text-xl 2xl:text-2xl font-extrabold ${text} whitespace-nowrap`}>{data.churn_label || "—"}</h2>
+          <h2 className={`mt-1 text-base lg:text-lg font-extrabold ${text} whitespace-nowrap`}>{data.churn_label || "—"}</h2>
         </div>
       </div>
     </div>

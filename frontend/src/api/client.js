@@ -30,6 +30,12 @@ export const api = {
     if (categoryId) params.set("category_id", categoryId);
     return request(`/analytics/neighborhood?${params}`);
   },
+  getIstanbulHeatmap: (categoryId = null) => {
+    const params = new URLSearchParams();
+    if (categoryId) params.set("category_id", categoryId);
+    const qs = params.toString();
+    return request(`/analytics/istanbul/heatmap${qs ? `?${qs}` : ""}`);
+  },
 
   // Restaurants
   searchRestaurants: (query) =>

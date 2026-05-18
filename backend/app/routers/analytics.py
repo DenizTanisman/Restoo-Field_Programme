@@ -135,11 +135,25 @@ def _build_analytics_response(
         platform_ids_seen.add(row.platform_id)
     platform_ids_seen.update(platform_customers_map.keys())
 
-    # Platform Müşteri Dağılımı: restoranlardan summed (sıra: platform_map order)
+    # Platform Müşteri Dağılımı:
+    # 1) Önce restoranlardan summed (kapsamdaki aktif restoranların toplamı)
+    # 2) Eğer restoran yoksa (veya 0 müşteri varsa) → analytics tablosundaki customers değerine düş.
+    #    Bu sayede CSV import edilen sentetik veri de Platform Müşteri kartında görünür.
+    analytics_customers_by_pid: dict[int, int] = {}
+    for row in rows:
+        cur = analytics_customers_by_pid.get(row.platform_id, 0)
+        analytics_customers_by_pid[row.platform_id] = cur + int(getattr(row, "customers", 0) or 0)
+
     for pid in sorted(platform_ids_seen):
         pname = platform_map.get(pid, f"Platform {pid}")
-        info = platform_customers_map.get(pid, {"customers": 0, "restaurants": 0})
-        platforms.append(PlatformCustomers(name=pname, customers=info["customers"], restaurants=info["restaurants"]))
+        info = platform_customers_map.get(pid)
+        if info and info.get("customers", 0) > 0:
+            customers = int(info["customers"])
+            restaurants = int(info.get("restaurants", 0))
+        else:
+            customers = analytics_customers_by_pid.get(pid, 0)
+            restaurants = 0
+        platforms.append(PlatformCustomers(name=pname, customers=customers, restaurants=restaurants))
 
     # Budget + forecast: analytics rows'tan aggregate
     for row in rows:
@@ -286,6 +300,50 @@ async def neighborhood_analytics(
         analytics_source=analytics_source,
         metrics_source=metrics_source,
     )
+
+
+@router.get("/istanbul/heatmap")
+async def istanbul_heatmap(
+    category_id: int | None = Query(default=None),
+    db: AsyncSession = Depends(get_db),
+):
+    """İstanbul geneli (tüm ilçeler aggregate) saatlik yoğunluk ısı haritası.
+    Her ilçenin son period_date kaydındaki 7x24 matrisleri toplanır, ortalaması döner.
+    category_id verilirse o kategoriye filtrelenir; verilmezse tüm kategoriler ortalanır.
+    """
+    stmt = select(DistrictMetrics)
+    if category_id is not None:
+        stmt = stmt.where(DistrictMetrics.category_id == category_id)
+    else:
+        stmt = stmt.where(DistrictMetrics.category_id == None)  # noqa: E711
+    stmt = stmt.order_by(DistrictMetrics.period_date.desc())
+    rows = (await db.execute(stmt)).scalars().all()
+
+    # En son period_date'i her ilçe için al — birden fazla period varsa karışmasın
+    latest_per_district: dict[str, list] = {}
+    for r in rows:
+        if r.district_id in latest_per_district:
+            continue
+        if not r.hourly_heatmap:
+            continue
+        if len(r.hourly_heatmap) != 7:
+            continue
+        latest_per_district[r.district_id] = r.hourly_heatmap
+
+    if not latest_per_district:
+        return {"heatmap": [], "district_count": 0}
+
+    # 7x24 toplam ve sayım
+    total = [[0.0] * 24 for _ in range(7)]
+    for matrix in latest_per_district.values():
+        for d in range(7):
+            row = matrix[d] if d < len(matrix) else []
+            for h in range(24):
+                v = row[h] if h < len(row) else 0
+                total[d][h] += float(v or 0)
+    n = len(latest_per_district)
+    avg = [[round(total[d][h] / n, 1) for h in range(24)] for d in range(7)]
+    return {"heatmap": avg, "district_count": n}
 
 
 @router.get("/comments/by-district", response_model=list[DistrictCommentSummary])

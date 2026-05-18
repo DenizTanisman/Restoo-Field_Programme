@@ -101,7 +101,7 @@ export default function BudgetAnalyticsCard({
             </div>
 
             {/* Radial chart */}
-            <div style={{ height: 180 }}>
+            <div className="select-none" style={{ height: 180 }}>
               <ResponsiveContainer width="100%" height="100%">
                 <RadialBarChart
                   cx="50%"

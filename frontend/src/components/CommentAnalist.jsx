@@ -1,8 +1,5 @@
 import { useEffect, useState } from "react";
 import { api } from "../api/client";
-import { districts as MAP_DISTRICTS } from "../data/mapData";
-
-const SORTED_DISTRICTS = [...MAP_DISTRICTS].sort((a, b) => a.name.localeCompare(b.name, "tr"));
 
 const FALLBACK_PLATFORM_BG = {
   "Yemeksepeti": "bg-pink-500",
@@ -184,19 +181,27 @@ function DistrictRanking({ rows }) {
 }
 
 function WordCloud({ words }) {
+  // Çoktan aza sıralı liste — "İlçe Bazlı Olumsuz Yorum Oranı" tarzı bar grafik
+  const sorted = [...words].sort((a, b) => (Number(b.weight) || 0) - (Number(a.weight) || 0));
+  const maxWeight = sorted.length > 0 ? Math.max(...sorted.map((w) => Number(w.weight) || 0)) : 1;
   return (
     <div className="bg-base-100 rounded-2xl p-5 shadow-sm border border-base-300">
       <h2 className="text-xs font-bold text-base-content/70 mb-4">En Çok Geçen Şikayet Kelimeleri</h2>
-      {words.length === 0 && <p className="text-xs italic text-base-content/50">Kelime yok — admin panelinden ekle</p>}
-      <div className="flex flex-wrap gap-x-4 gap-y-2 items-center">
-        {words.map((w, idx) => {
-          const weight = Math.max(0.5, Math.min(5, Number(w.weight) || 1));
-          const size = Math.round(12 + weight * 4);
+      {sorted.length === 0 && <p className="text-xs italic text-base-content/50">Kelime yok — admin panelinden ekle</p>}
+      <div className="space-y-2">
+        {sorted.map((w, idx) => {
+          const weight = Number(w.weight) || 0;
+          const pct = maxWeight > 0 ? (weight / maxWeight) * 100 : 0;
           const color = WORD_COLORS[idx % WORD_COLORS.length];
           return (
-            <span key={`${w.text}-${idx}`} className={`font-bold cursor-default select-none leading-tight ${color}`} style={{ fontSize: `${size}px` }}>
-              {w.text}
-            </span>
+            <div key={`${w.text}-${idx}`} className="flex items-center gap-2">
+              <span className={`text-xs font-bold w-24 shrink-0 truncate ${color}`}>{w.text}</span>
+              <div className="flex-1 bg-base-200 rounded h-5 overflow-hidden">
+                <div className="bg-red-500 h-full rounded flex items-center pl-2" style={{ width: `${pct}%` }}>
+                  <span className="text-[9px] text-white font-bold">{weight}</span>
+                </div>
+              </div>
+            </div>
           );
         })}
       </div>
@@ -212,10 +217,8 @@ const RATING_DEFAULTS = [
   { stars: 1, percent: 0, count: 0 },
 ];
 
-export default function CommentAnalist({ districtId, neighborhoodId, neighborhoodName, metrics }) {
-  const [selectedDistrictId, setSelectedDistrictId] = useState(districtId || "");
-  const [selectedNeighborhoodId, setSelectedNeighborhoodId] = useState(neighborhoodId || "");
-  const [neighborhoods, setNeighborhoods] = useState([]);
+export default function CommentAnalist({ metrics }) {
+  // İçinde kendi ilçe/mahalle seçimi YOK — üstteki sayfa seçimini takip eder.
   const [districtRanking, setDistrictRanking] = useState([]);
   const [platformsList, setPlatformsList] = useState([]); // {id, name, logo_url, color_hex}
 
@@ -234,31 +237,6 @@ export default function CommentAnalist({ districtId, neighborhoodId, neighborhoo
       .catch(() => alive && setDistrictRanking([]));
     return () => { alive = false; };
   }, []);
-
-  useEffect(() => {
-    if (districtId) setSelectedDistrictId(districtId);
-  }, [districtId]);
-  useEffect(() => {
-    if (neighborhoodId) setSelectedNeighborhoodId(neighborhoodId);
-  }, [neighborhoodId]);
-
-  useEffect(() => {
-    if (!selectedDistrictId) {
-      setNeighborhoods([]);
-      return;
-    }
-    let alive = true;
-    api
-      .getDistrictNeighborhoods(selectedDistrictId)
-      .then((data) => { if (alive) setNeighborhoods(data); })
-      .catch(() => alive && setNeighborhoods([]));
-    return () => { alive = false; };
-  }, [selectedDistrictId]);
-
-  const handleDistrictChange = (e) => {
-    setSelectedDistrictId(e.target.value);
-    setSelectedNeighborhoodId("");
-  };
 
   const m = metrics || {};
   const total = Number(m.negative_comment_total) || 0;
@@ -286,32 +264,9 @@ export default function CommentAnalist({ districtId, neighborhoodId, neighborhoo
     <div className="font-sans">
       <div className="bg-base-100 rounded-3xl shadow-lg overflow-hidden">
         <div className="px-6 py-5 border-b border-base-300">
-          <h1 className="text-2xl font-bold text-base-content text-center mb-4">
+          <h1 className="text-2xl font-bold text-base-content text-center">
             Olumsuz Yorumlar Analiz Paneli (1 Ay)
           </h1>
-          <div className="flex flex-wrap gap-2 justify-center">
-            <select
-              value={selectedDistrictId}
-              onChange={handleDistrictChange}
-              className="text-sm border border-base-300 rounded-lg px-3 py-1.5 bg-base-100 text-base-content outline-none cursor-pointer"
-            >
-              <option value="">İlçe seç</option>
-              {SORTED_DISTRICTS.map((d) => (
-                <option key={d.id} value={d.id}>{d.name}</option>
-              ))}
-            </select>
-            <select
-              value={selectedNeighborhoodId}
-              onChange={(e) => setSelectedNeighborhoodId(e.target.value)}
-              disabled={!selectedDistrictId}
-              className="text-sm border border-base-300 rounded-lg px-3 py-1.5 bg-base-100 text-base-content outline-none cursor-pointer disabled:opacity-50"
-            >
-              <option value="">Tüm mahalleler</option>
-              {neighborhoods.map((n) => (
-                <option key={n.id} value={n.id}>{n.name}</option>
-              ))}
-            </select>
-          </div>
         </div>
 
         <div className="p-5 space-y-4 bg-base-200">
