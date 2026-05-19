@@ -38,7 +38,8 @@ export default function PasswordGate({ pageLabel, children }) {
   if (unlocked) return children;
 
   return (
-    <div className="card bg-base-100 shadow-sm max-w-md mx-auto mt-12">
+      <div className="min-h-[calc(100vh-120px)] flex items-center justify-center px-4">
+    <div className="card bg-base-100 shadow-sm w-full max-w-md">
       <div className="card-body">
         <h2 className="card-title flex items-center gap-2">
           <span>🔒</span>
@@ -61,6 +62,7 @@ export default function PasswordGate({ pageLabel, children }) {
           <button type="submit" className="btn btn-primary w-full">Aç</button>
         </form>
       </div>
+    </div>
     </div>
   );
 }

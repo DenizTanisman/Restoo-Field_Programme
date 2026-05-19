@@ -3,18 +3,18 @@ import { NavLink } from "react-router-dom";
 // Sıralama: Restaurants → Dashboard → Data Entry → Case Studies → Loyalty → Applications
 // Sonra ayrıştırıcı, ardından şifre-korumalı 3 link: Districts / Categories / Platforms.
 const links = [
-  { to: "/restaurants", label: "Restaurants", icon: "🍽️" },
-  { to: "/dashboard", label: "Dashboard", icon: "📊" },
-  { to: "/data-entry", label: "Data Entry", icon: "📝" },
-  { to: "/case-studies", label: "Case Studies", icon: "📚" },
-  { to: "/settings", label: "Loyalty", icon: "💎" },
-  { to: "/applications", label: "Applications", icon: "🛵" },
+  { to: "/restaurants", label: "Restoranlar", icon: "🍽️" },
+  { to: "/dashboard", label: "Panel", icon: "📊" },
+  { to: "/data-entry", label: "Veri Girişi", icon: "📝" },
+  { to: "/case-studies", label: "Başarı Hikayeleri", icon: "📚" },
+  { to: "/settings", label: "Sadakat", icon: "💎" },
+  { to: "/applications", label: "Başvurular", icon: "🛵" },
 ];
 
 const lockedLinks = [
-  { to: "/districts", label: "Districts", icon: "🗺️" },
-  { to: "/categories", label: "Categories", icon: "🏷️" },
-  { to: "/platforms", label: "Platforms", icon: "📱" },
+  { to: "/districts", label: "İlçeler", icon: "🗺️" },
+  { to: "/categories", label: "Kategoriler", icon: "🏷️" },
+  { to: "/platforms", label: "Platformlar", icon: "📱" },
 ];
 
 function LinkItem({ l, locked = false }) {
