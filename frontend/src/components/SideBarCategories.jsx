@@ -52,7 +52,9 @@ const SideBarCategories = ({ onCategorySelect, selectedCategoryId = null }) => {
                     }`}
                 >
                   <span className="text-lg leading-none">{cat.emoji}</span>
-                  <span className="truncate">{cat.name}</span>
+                 <span className="whitespace-normal break-words text-left leading-snug">
+  {cat.name}
+</span>
                 </button>
               </li>
             ))}

@@ -38,9 +38,9 @@ export default function App() {
         {/* Eski sayfalar — direkt URL ile hâlâ erişilebilir (geri uyumluluk için) */}
         <Route path="/analytics" element={<AnalyticsPage />} />
         <Route path="/metrics" element={<MetricsPage />} />
-        <Route path="/categories" element={<PasswordGate pageLabel="Categories"><CategoriesPage /></PasswordGate>} />
-        <Route path="/platforms" element={<PasswordGate pageLabel="Platforms"><PlatformsPage /></PasswordGate>} />
-        <Route path="/districts" element={<PasswordGate pageLabel="Districts"><DistrictsPage /></PasswordGate>} />
+        <Route path="/categories" element={<PasswordGate pageLabel="Kategoriler"><CategoriesPage /></PasswordGate>} />
+        <Route path="/platforms" element={<PasswordGate pageLabel="Platformlar"><PlatformsPage /></PasswordGate>} />
+        <Route path="/districts" element={<PasswordGate pageLabel="İlçeler"><DistrictsPage /></PasswordGate>} />
         <Route path="/settings" element={<SettingsPage />} />
       </Route>
       <Route path="*" element={<Navigate to="/dashboard" replace />} />
