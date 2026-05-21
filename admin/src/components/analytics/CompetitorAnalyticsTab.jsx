@@ -134,9 +134,9 @@ export default function CompetitorAnalyticsTab() {
                 <thead>
                   <tr>
                     <th>Platform</th>
-                    <th>Min. Sepet (₺)</th>
+                    <th>Min. Sepet</th>
                     <th>Puan</th>
-                    <th>Aylık Ciro (₺)</th>
+                    <th>Aylık Ciro</th>
                     <th>Teslimat</th>
                     <th>İndirim (%)</th>
                     <th>Kupon (%)</th>

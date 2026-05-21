@@ -39,4 +39,15 @@ export const caseStudiesApi = {
   reorder: (items) =>
     request("/admin/case-studies/reorder", { method: "PATCH", body: items }),
   exportCsv: () => requestBlob("/admin/case-studies/csv"),
+  importCsv: async (file) => {
+    const fd = new FormData();
+    fd.append("file", file);
+    const res = await fetch(`${API_URL}/admin/case-studies/csv`, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${getToken()}` },
+      body: fd,
+    });
+    if (!res.ok) throw new Error((await res.text()) || `HTTP ${res.status}`);
+    return res.json();
+  },
 };

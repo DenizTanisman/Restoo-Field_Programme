@@ -37,7 +37,7 @@ const CustomTooltip = ({ active, payload, label }) => {
       <p className="font-semibold text-base-content mb-1">{label}</p>
       {payload.map((p) => (
         <p key={p.dataKey} style={{ color: p.fill }} className="font-medium">
-          {p.value.toLocaleString("tr-TR")} ₺
+          {p.value.toLocaleString("tr-TR")}
         </p>
       ))}
     </div>
@@ -68,12 +68,14 @@ export default function SalesForecastCard({
 
   const rawData = forecast[period] ?? [];
 
-  // Bar chart için her platform ayrı çubuk
-  const chartData = rawData.map((item) => ({
-    name: item.platform,
-    amount: item.amount,
-    color: resolveColor(item.platform),
-  }));
+  // Bar chart için her platform ayrı çubuk — çoktan aza sıralı
+  const chartData = rawData
+    .map((item) => ({
+      name: item.platform,
+      amount: Number(item.amount) || 0,
+      color: resolveColor(item.platform),
+    }))
+    .sort((a, b) => b.amount - a.amount);
 
   const total = rawData.reduce((s, i) => s + (i.amount ?? 0), 0);
 
@@ -130,7 +132,7 @@ export default function SalesForecastCard({
               <div>
                 <p className="text-white/80 text-xs font-medium">Toplam Tahmini Satış</p>
                 <p className="text-white text-2xl font-bold">
-                  {total.toLocaleString("tr-TR")} ₺
+                  {total.toLocaleString("tr-TR")}
                 </p>
               </div>
               <p className="text-white/70 text-sm">{periodSuffix[period]}</p>
@@ -177,7 +179,7 @@ export default function SalesForecastCard({
                     <span className="text-base-content">{item.name}</span>
                   </div>
                   <span className="font-semibold text-base-content">
-                    {item.amount.toLocaleString("tr-TR")} ₺
+                    {item.amount.toLocaleString("tr-TR")}
                   </span>
                 </li>
               ))}

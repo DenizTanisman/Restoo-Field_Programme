@@ -37,7 +37,7 @@ function VsCompareCard({ icon, title, subtitle, myValue, areaValue, areaLabel = 
   );
 }
 
-const fmtTL = (v) => `${(Number(v) || 0).toLocaleString("tr-TR")} ₺`;
+const fmtPlain = (v) => (Number(v) || 0).toLocaleString("tr-TR");
 const fmtRating = (v) => (Number(v) || 0).toFixed(1);
 
 export default function Kiyaslama({ districtName, neighborhoodName, metrics, budget, categoryId }) {
@@ -73,26 +73,22 @@ export default function Kiyaslama({ districtName, neighborhoodName, metrics, bud
           <div className="mb-8 grid grid-cols-1 gap-5 sm:grid-cols-2 2xl:grid-cols-4">
             <div className="rounded-xl border-l-4 border-red-500 bg-base-100 p-6 shadow-sm">
               <h4 className="text-xs font-semibold text-base-content/60">ORTALAMA SEPET TUTARI</h4>
-              <h2 className="mt-2 text-3xl font-bold text-red-500">{fmtTL(m.avg_basket)}</h2>
-              <p className="mt-1 text-sm text-base-content/60">İlçe Ort: {fmtTL(m.avg_basket)}</p>
+              <h2 className="mt-2 text-3xl font-bold text-red-500">{fmtPlain(m.avg_basket)}</h2>
             </div>
 
             <div className="rounded-xl border-l-4 border-blue-500 bg-base-100 p-6 shadow-sm">
               <h4 className="text-xs font-semibold text-base-content/60">ORTALAMA PUAN</h4>
               <h2 className="mt-2 text-3xl font-bold text-blue-500">{fmtRating(m.area_rating)}</h2>
-              <p className="mt-1 text-sm text-base-content/60">İlçe Ort: {fmtRating(m.area_rating)}</p>
             </div>
 
             <div className="rounded-xl border-l-4 border-green-500 bg-base-100 p-6 shadow-sm">
               <h4 className="text-xs font-semibold text-base-content/60">ORTALAMA AYLIK CİRO</h4>
-              <h2 className="mt-2 text-3xl font-bold text-green-500">{fmtTL(m.avg_monthly_revenue)}</h2>
-              <p className="mt-1 text-sm text-base-content/60">Rakip Ort: {fmtTL(m.avg_monthly_revenue)}</p>
+              <h2 className="mt-2 text-3xl font-bold text-green-500">{fmtPlain(m.avg_monthly_revenue)}</h2>
             </div>
 
             <div className="rounded-xl border-l-4 border-yellow-500 bg-base-100 p-6 shadow-sm">
               <h4 className="text-xs font-semibold text-base-content/60">KURYE ÜCRETİ</h4>
-              <h2 className="mt-2 text-3xl font-bold text-yellow-500">{fmtTL(m.courier_fee)}</h2>
-              <p className="mt-1 text-sm text-base-content/60">İlçe Ort: {fmtTL(m.courier_fee)}</p>
+              <h2 className="mt-2 text-3xl font-bold text-yellow-500">{fmtPlain(m.courier_fee)}</h2>
             </div>
           </div>
 
@@ -117,7 +113,7 @@ export default function Kiyaslama({ districtName, neighborhoodName, metrics, bud
               title="Ortalama Sepet Tutarı"
               subtitle={subtitle}
               myValue={null}
-              areaValue={fmtTL(m.avg_basket)}
+              areaValue={fmtPlain(m.avg_basket)}
               footerLabel="Sipariş Başına"
             />
             <VsCompareCard
@@ -125,7 +121,7 @@ export default function Kiyaslama({ districtName, neighborhoodName, metrics, bud
               title="Ortalama Menü Fiyatı"
               subtitle="Senin ortalaman vs ilçe ortalaması"
               myValue={null}
-              areaValue={fmtTL(m.avg_menu_price)}
+              areaValue={fmtPlain(m.avg_menu_price)}
               footerLabel="Menü Başına"
             />
           </div>

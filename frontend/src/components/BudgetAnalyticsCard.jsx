@@ -4,10 +4,12 @@ import {
   RadialBar,
   ResponsiveContainer,
   Tooltip,
+  Cell,
+  PolarAngleAxis,
 } from "recharts";
 
 const METRICS = [
-  { key: "adBudget",       label: "Ort. Reklam Bütçesi",  unit: "₺",  color: "#6366f1", icon: "📢" },
+  { key: "adBudget",       label: "Ort. Reklam Bütçesi",  unit: "",   color: "#6366f1", icon: "📢" },
   { key: "campaignRate",   label: "Kampanya Katılımı",     unit: "%",  color: "#f59e0b", icon: "🎯" },
   { key: "couponRate",     label: "Kupon Katılımı",        unit: "%",  color: "#10b981", icon: "🎟️" },
   { key: "flashRate",      label: "Flash Katılımı",        unit: "%",  color: "#ef4444", icon: "⚡" },
@@ -52,10 +54,10 @@ export default function BudgetAnalyticsCard({
   loading = false,
   error = null,
 }) {
-  const radialData = METRICS.filter((m) => m.key !== "adBudget").map((m) => ({
-    ...m,
-    value: data[m.key] ?? 0,
-  }));
+  // Çoktan aza sıralı — radial barların değerleri yüzde olarak yansır
+  const radialData = METRICS.filter((m) => m.key !== "adBudget")
+    .map((m) => ({ ...m, value: Number(data[m.key] ?? 0) }))
+    .sort((a, b) => b.value - a.value);
 
   return (
     <div className="card bg-base-100 shadow-md rounded-2xl h-full">
@@ -94,39 +96,43 @@ export default function BudgetAnalyticsCard({
               <div>
                 <p className="text-white/80 text-xs font-medium">Ortalama Reklam Bütçesi</p>
                 <p className="text-white text-2xl font-bold">
-                  {(data.adBudget ?? 0).toLocaleString("tr-TR")} ₺
+                  {(data.adBudget ?? 0).toLocaleString("tr-TR")}
                 </p>
               </div>
               <span className="text-4xl">📢</span>
             </div>
 
-            {/* Radial chart */}
+            {/* Radial chart — yüzdeye göre dolu daireler, çoktan aza sıralı, etiketlerle aynı renkte */}
             <div className="select-none" style={{ height: 180 }}>
               <ResponsiveContainer width="100%" height="100%">
                 <RadialBarChart
                   cx="50%"
                   cy="50%"
-                  innerRadius={20}
-                  outerRadius={80}
+                  innerRadius="20%"
+                  outerRadius="100%"
                   data={radialData}
                   startAngle={90}
                   endAngle={-270}
                 >
+                  <PolarAngleAxis type="number" domain={[0, 100]} tick={false} />
                   <RadialBar
-                    minAngle={5}
-                    background
-                    clockWise
+                    background={{ fill: "rgba(148,163,184,0.15)" }}
+                    cornerRadius={4}
                     dataKey="value"
-                  />
+                  >
+                    {radialData.map((entry) => (
+                      <Cell key={entry.key} fill={entry.color} />
+                    ))}
+                  </RadialBar>
                   <Tooltip content={<CustomTooltip />} />
                 </RadialBarChart>
               </ResponsiveContainer>
             </div>
 
-            {/* Liste */}
+            {/* Liste — radial ile aynı sırada (çoktan aza) */}
             <ul className="space-y-2 mt-1">
-              {METRICS.filter((m) => m.key !== "adBudget").map((m) => {
-                const val = data[m.key] ?? 0;
+              {radialData.map((m) => {
+                const val = m.value;
                 return (
                   <li key={m.key} className="flex items-center gap-3">
                     <span className="text-lg w-6 text-center">{m.icon}</span>

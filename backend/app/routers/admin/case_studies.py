@@ -10,7 +10,13 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.database import get_db
 from app.models import CaseStudy, Category, District
-from app.services.csv_service import CASE_STUDY_COLUMNS, rows_to_csv
+from app.services.csv_service import (
+    CASE_STUDY_COLUMNS,
+    rows_to_csv,
+    parse_csv_upload,
+    to_bool, to_int,
+)
+from app.services.metric_schemas import CASE_STUDY_SLOTS
 from app.services.storage_service import delete_media, save_upload
 
 
@@ -256,36 +262,134 @@ async def reorder_case_studies(items: list[ReorderItem], db: AsyncSession = Depe
     return [_serialize(s) for s in refreshed]
 
 
+def _case_study_to_csv_row(r: CaseStudy) -> dict:
+    """5 slot before/after — görseller CSV'de değil."""
+    out: dict = {
+        "id": r.id,
+        "title": r.title,
+        "district_id": r.district_id or "",
+        "category_id": r.category_id or "",
+        "sort_order": r.sort_order,
+        "is_active": "true" if r.is_active else "false",
+        "before_daily_order": r.before_daily_order or "",
+        "before_avg_basket": r.before_avg_basket or "",
+        "after_daily_order": r.after_daily_order or "",
+        "after_avg_basket": r.after_avg_basket or "",
+    }
+    complaints = r.before_complaints or []
+    for i in range(1, CASE_STUDY_SLOTS + 1):
+        out[f"before_complaint_{i}"] = complaints[i - 1] if i <= len(complaints) else ""
+    improvements = r.after_improvements or []
+    for i in range(1, CASE_STUDY_SLOTS + 1):
+        out[f"after_improvement_{i}"] = improvements[i - 1] if i <= len(improvements) else ""
+    return out
+
+
 @router.get("/csv", response_class=Response)
 async def export_csv(db: AsyncSession = Depends(get_db)):
     rows = (
         await db.execute(select(CaseStudy).order_by(CaseStudy.sort_order, CaseStudy.id))
     ).scalars().all()
-    csv_text = rows_to_csv(
-        (
-            {
-                "id": r.id,
-                "title": r.title,
-                "district_id": r.district_id or "",
-                "category_id": r.category_id or "",
-                "sort_order": r.sort_order,
-                "is_active": "true" if r.is_active else "false",
-                "before_image_url": r.before_image_url or "",
-                "before_daily_order": r.before_daily_order or "",
-                "before_avg_basket": r.before_avg_basket or "",
-                "before_complaints": "|".join(r.before_complaints or []),
-                "after_image_url": r.after_image_url or "",
-                "after_daily_order": r.after_daily_order or "",
-                "after_avg_basket": r.after_avg_basket or "",
-                "after_improvements": "|".join(r.after_improvements or []),
-                "created_at": r.created_at.isoformat(),
-            }
-            for r in rows
-        ),
-        CASE_STUDY_COLUMNS,
-    )
+    csv_text = rows_to_csv((_case_study_to_csv_row(r) for r in rows), CASE_STUDY_COLUMNS)
     return Response(
         content=csv_text,
         media_type="text/csv",
         headers={"Content-Disposition": 'attachment; filename="case_studies.csv"'},
     )
+
+
+@router.post("/csv", response_model=dict)
+async def import_csv(file: UploadFile = File(...), db: AsyncSession = Depends(get_db)):
+    """Görsel olmadan toplu güncelleme. before/after_image_url'ler dokunulmaz."""
+    records, warnings = await parse_csv_upload(file, CASE_STUDY_COLUMNS)
+    created = updated = skipped = 0
+    errors: list[str] = []
+
+    for idx, row in enumerate(records, start=2):
+        title = (row.get("title") or "").strip()
+        if not title:
+            errors.append(f"satır {idx}: title zorunlu — atlandı")
+            skipped += 1
+            continue
+
+        district_id = (row.get("district_id") or "").strip() or None
+        category_id_raw = (row.get("category_id") or "").strip()
+        category_id: int | None = None
+        if category_id_raw:
+            try:
+                category_id = int(category_id_raw)
+            except ValueError:
+                errors.append(f"satır {idx}: category_id geçersiz — atlandı")
+                skipped += 1
+                continue
+
+        try:
+            await _validate_refs(db, district_id, category_id)
+        except HTTPException as exc:
+            errors.append(f"satır {idx}: {exc.detail} — atlandı")
+            skipped += 1
+            continue
+
+        sort_order = to_int(row.get("sort_order"))
+        is_active = to_bool(row.get("is_active"), default=True)
+
+        before_complaints = [
+            (row.get(f"before_complaint_{i}") or "").strip()
+            for i in range(1, CASE_STUDY_SLOTS + 1)
+        ]
+        before_complaints = [c for c in before_complaints if c] or None
+
+        after_improvements = [
+            (row.get(f"after_improvement_{i}") or "").strip()
+            for i in range(1, CASE_STUDY_SLOTS + 1)
+        ]
+        after_improvements = [c for c in after_improvements if c] or None
+
+        # id ile mevcut kayıt
+        existing = None
+        id_raw = (row.get("id") or "").strip()
+        if id_raw:
+            try:
+                existing = (await db.execute(
+                    select(CaseStudy).where(CaseStudy.id == int(id_raw))
+                )).scalar_one_or_none()
+            except ValueError:
+                pass
+
+        if existing:
+            existing.title = title
+            existing.district_id = district_id
+            existing.category_id = category_id
+            existing.sort_order = sort_order
+            existing.is_active = is_active
+            existing.before_daily_order = (row.get("before_daily_order") or "").strip() or None
+            existing.before_avg_basket = (row.get("before_avg_basket") or "").strip() or None
+            existing.before_complaints = before_complaints
+            existing.after_daily_order = (row.get("after_daily_order") or "").strip() or None
+            existing.after_avg_basket = (row.get("after_avg_basket") or "").strip() or None
+            existing.after_improvements = after_improvements
+            updated += 1
+        else:
+            db.add(CaseStudy(
+                title=title,
+                district_id=district_id,
+                category_id=category_id,
+                sort_order=sort_order,
+                is_active=is_active,
+                before_daily_order=(row.get("before_daily_order") or "").strip() or None,
+                before_avg_basket=(row.get("before_avg_basket") or "").strip() or None,
+                before_complaints=before_complaints,
+                after_daily_order=(row.get("after_daily_order") or "").strip() or None,
+                after_avg_basket=(row.get("after_avg_basket") or "").strip() or None,
+                after_improvements=after_improvements,
+            ))
+            created += 1
+
+    await db.commit()
+    return {
+        "created": created,
+        "updated": updated,
+        "skipped": skipped,
+        "warnings": warnings,
+        "errors": errors,
+    }

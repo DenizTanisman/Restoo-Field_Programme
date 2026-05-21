@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
-import { metricsApi } from "../api/analytics";
+import { loyaltyApi } from "../api/analytics";
+import { CsvExportButton, CsvImportButton } from "../components/ui/CsvButtons";
 import { useToast } from "../components/ui/Toast";
 
 // Sadakat sayfası — tüm public içerikleri buradan dinamik yönet.
@@ -37,7 +38,7 @@ export default function SettingsPage() {
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    metricsApi.siteSettings.get()
+    loyaltyApi.get()
       .then((data) => {
         // Eksik alanları default ile tamamla (geriye uyumluluk)
         setV({ ...DEFAULT_VALUES, ...data, loyalty_feature_cards: Array.isArray(data.loyalty_feature_cards) ? data.loyalty_feature_cards : [] });
@@ -65,7 +66,7 @@ export default function SettingsPage() {
     e.preventDefault();
     setSaving(true);
     try {
-      await metricsApi.siteSettings.upsert(v);
+      await loyaltyApi.upsert(v);
       toast.push("Sadakat sayfası içeriği kaydedildi", "success");
     } catch (err) {
       toast.push(err.message, "error");
@@ -76,8 +77,25 @@ export default function SettingsPage() {
 
   if (loading) return <p className="opacity-60">Yükleniyor…</p>;
 
+  const handleImportCsv = async (file) => {
+    try {
+      const res = await loyaltyApi.importCsv(file);
+      toast.push(`CSV yüklendi · ${res.feature_cards_count} feature card`, "success");
+      // Sayfayı yeniden yükle
+      const data = await loyaltyApi.get();
+      setV({ ...DEFAULT_VALUES, ...data, loyalty_feature_cards: Array.isArray(data.loyalty_feature_cards) ? data.loyalty_feature_cards : [] });
+    } catch (e) {
+      toast.push(e.message, "error");
+    }
+  };
+
   return (
     <form onSubmit={save} className="space-y-4 pb-24 max-w-5xl">
+      <div className="flex justify-end gap-2 mb-2">
+        <CsvImportButton onImport={handleImportCsv} label="CSV İçe Aktar" />
+        <CsvExportButton onExport={loyaltyApi.exportCsv} filename="loyalty.csv" />
+      </div>
+
       {/* ===== STATS ===== */}
       <Card title="① Stat Sayıları" subtitle="Sayfada büyük rakam olarak görünen 4 değer">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">

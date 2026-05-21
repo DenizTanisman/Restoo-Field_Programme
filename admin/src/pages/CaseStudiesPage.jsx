@@ -6,7 +6,7 @@ import DataTable from "../components/ui/DataTable";
 import FormModal from "../components/ui/FormModal";
 import ConfirmDialog from "../components/ui/ConfirmDialog";
 import TagInput from "../components/ui/TagInput";
-import { CsvExportButton } from "../components/ui/CsvButtons";
+import { CsvExportButton, CsvImportButton } from "../components/ui/CsvButtons";
 import { useToast } from "../components/ui/Toast";
 
 const EMPTY = {
@@ -173,7 +173,18 @@ export default function CaseStudiesPage() {
         <div className="flex justify-between items-center mb-3">
           <h2 className="card-title">Başarı Hikayeleri</h2>
           <div className="flex gap-2">
-            <CsvExportButton onExport={caseStudiesApi.exportCsv} filename="basari_hikayeleri.csv" />
+            <CsvImportButton
+              onImport={async (file) => {
+                try {
+                  const res = await caseStudiesApi.importCsv(file);
+                  toast.push(`CSV: ${res.created} yeni, ${res.updated} güncellendi`, "success");
+                  await load();
+                } catch (e) {
+                  toast.push(e.message, "error");
+                }
+              }}
+            />
+            <CsvExportButton onExport={caseStudiesApi.exportCsv} filename="case_studies.csv" />
             <button className="btn btn-sm btn-primary" onClick={openNew}>+ Yeni Hikaye</button>
           </div>
         </div>
@@ -290,7 +301,7 @@ export default function CaseStudiesPage() {
               </div>
               <div className="form-control flex flex-col gap-2">
                 <label className="label-text font-medium">Ortalama sepet</label>
-                <input className="input input-bordered input-sm" placeholder="120 ₺" value={form.before_avg_basket} onChange={(e) => setForm({ ...form, before_avg_basket: e.target.value })} />
+                <input className="input input-bordered input-sm" placeholder="120" value={form.before_avg_basket} onChange={(e) => setForm({ ...form, before_avg_basket: e.target.value })} />
               </div>
               <div className="form-control flex flex-col gap-2">
                 <label className="label-text font-medium">Şikayetler</label>
@@ -313,7 +324,7 @@ export default function CaseStudiesPage() {
               </div>
               <div className="form-control flex flex-col gap-2">
                 <label className="label-text font-medium">Ortalama sepet</label>
-                <input className="input input-bordered input-sm" placeholder="165 ₺" value={form.after_avg_basket} onChange={(e) => setForm({ ...form, after_avg_basket: e.target.value })} />
+                <input className="input input-bordered input-sm" placeholder="165" value={form.after_avg_basket} onChange={(e) => setForm({ ...form, after_avg_basket: e.target.value })} />
               </div>
               <div className="form-control flex flex-col gap-2">
                 <label className="label-text font-medium">İyileştirmeler</label>

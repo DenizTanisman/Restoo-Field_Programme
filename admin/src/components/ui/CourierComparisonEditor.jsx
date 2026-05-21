@@ -37,7 +37,7 @@ export default function CourierComparisonEditor({ value, onChange }) {
             <p className="text-xs opacity-60 mb-3">{note}</p>
             <div className="grid grid-cols-2 gap-2 text-xs">
               <label className="flex flex-col gap-1">
-                <span className="opacity-70">Sabit ücret (₺)</span>
+                <span className="opacity-70">Sabit ücret</span>
                 <input
                   type="number" min="0" step="0.01"
                   className="input input-bordered input-sm"
@@ -46,7 +46,7 @@ export default function CourierComparisonEditor({ value, onChange }) {
                 />
               </label>
               <label className="flex flex-col gap-1">
-                <span className="opacity-70">Ort. sipariş başına maliyet (₺)</span>
+                <span className="opacity-70">Ort. sipariş başına maliyet</span>
                 <input
                   type="number" min="0" step="0.01"
                   className="input input-bordered input-sm"
@@ -55,7 +55,7 @@ export default function CourierComparisonEditor({ value, onChange }) {
                 />
               </label>
               <label className="flex flex-col gap-1">
-                <span className="opacity-70">Aylık ciro (₺)</span>
+                <span className="opacity-70">Aylık ciro</span>
                 <input
                   type="number" min="0"
                   className="input input-bordered input-sm"

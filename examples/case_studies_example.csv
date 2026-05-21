@@ -1,4 +1,0 @@
-id,title,district_id,category_id,sort_order,is_active,before_image_url,before_daily_order,before_avg_basket,before_complaints,after_image_url,after_daily_order,after_avg_basket,after_improvements,created_at
-,Pizza Napoli - Kadıköy,34-kadıköy,2,1,true,,8-12 adet,120 ₺,Fotoğraf kalitesi düşük|Menü bilgileri eksik|Teslimat süresi belirsiz,,35-50 adet,165 ₺,Profesyonel fotoğraf çekimi|Menü optimizasyonu|Kampanya yönetimi,2026-04-01T10:00:00
-,Köfteci Hasan - Üsküdar,34-üsküdar,3,2,true,,15-20 adet,95 ₺,Soğuk teslimat|Az porsiyon|Yanlış sipariş,,55-70 adet,140 ₺,Termal paketleme|Porsiyon standartı|QR doğrulama sistemi,2026-04-05T10:00:00
-,Burger Stop - Beşiktaş,34-beşiktaş,1,3,true,,20-25 adet,180 ₺,Yavaş hazırlama|Lezzet tutarsız,,60-80 adet,225 ₺,Sandviç hattı kurulumu|Tarif standardı,2026-04-10T10:00:00

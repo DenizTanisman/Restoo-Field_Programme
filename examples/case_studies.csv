@@ -1,0 +1,3 @@
+id,title,district_id,category_id,sort_order,is_active,before_daily_order,before_avg_basket,before_complaint_1,before_complaint_2,before_complaint_3,before_complaint_4,before_complaint_5,after_daily_order,after_avg_basket,after_improvement_1,after_improvement_2,after_improvement_3,after_improvement_4,after_improvement_5
+,Ali Usta — 3 ayda ciro 3 katı,34-fatih,3,1,true,25/gün,85 ₺,Soğuk teslimat,Az porsiyon,Yanlış sipariş,,,75/gün,145 ₺,Sıcak çanta,Porsiyon kontrolü,Çift kontrol,Yeni paketleme,
+,Pizza Roma — Aylık ciro 5 katına çıktı,34-besiktas,5,2,true,40/gün,110 ₺,Geç teslimat,Hamur kötü,,,,200/gün,180 ₺,30dk garanti,Yeni fırın,Sıcak çanta,,

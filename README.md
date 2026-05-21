@@ -8,7 +8,7 @@ Türkçe B2B yemek platformu kontrol paneli. İstanbul ilçe + mahalle bazlı an
 |---|---|---|
 | `backend/` | 8003 | FastAPI · SQLAlchemy (async) · **PostgreSQL 15** · Alembic |
 | `frontend/` | 5173 | React · Vite · Tailwind · daisyUI · Recharts |
-| `admin/` | 5181 | React · Vite · Tailwind · daisyUI |
+| `admin/` | **5181** | React · Vite · Tailwind · daisyUI |
 
 Üç servis bağımsız çalışır, tek backend her ikisini de besler.
 
@@ -53,26 +53,21 @@ python3 -m venv .venv
 cp .env.example .env
 ```
 
-`.env.example`'taki varsayılan PostgreSQL bağlantısı dev için yeterli:
+Dev için varsayılan PostgreSQL bağlantısı yeterli:
 ```
 DATABASE_URL=postgresql+asyncpg://opencard:opencard@localhost:5432/opencard
 ```
 
-Prod'da `SECRET_KEY`, `ADMIN_DEFAULT_PASSWORD` ve DB şifresi mutlaka değiştirilmeli.
-
-### PostgreSQL kurulumu (ilk kez)
+### PostgreSQL ilk kurulum
 
 ```bash
-# Brew servisi zaten çalışıyor olmalı
 brew services start postgresql@15
 
-# Role + DB yarat
 psql postgres <<'SQL'
 CREATE ROLE opencard WITH LOGIN PASSWORD 'opencard' CREATEDB;
 CREATE DATABASE opencard OWNER opencard ENCODING 'UTF8';
 SQL
 
-# Test
 PGPASSWORD=opencard psql -h localhost -U opencard -d opencard -c "SELECT version();"
 ```
 
@@ -84,10 +79,7 @@ cd backend
 .venv/bin/python -m scripts.seed_admin           # admin kullanıcı
 .venv/bin/python -m scripts.seed_neighborhoods   # 39 ilçe + ~874 mahalle
 .venv/bin/python -m scripts.seed_local           # kategori + platform
-.venv/bin/python ../scripts/generate_synthetic.py  # 195 restoran + analytics + metrics
 ```
-
-> Eski SQLite kurulumundan geliyorsan: [scripts/migrate_to_postgres.py](backend/scripts/migrate_to_postgres.py) mevcut `opencard_dev.db` içeriğini Postgres'e taşır.
 
 ### Backend'i başlat
 
@@ -95,8 +87,8 @@ cd backend
 .venv/bin/uvicorn app.main:app --port 8003 --reload
 ```
 
-Sağlık kontrolü: <http://localhost:8003/health>
-Swagger UI: <http://localhost:8003/docs>
+- Sağlık kontrolü: <http://localhost:8003/health>
+- Swagger UI: <http://localhost:8003/docs>
 
 ---
 
@@ -132,21 +124,21 @@ Açılış: <http://localhost:5181>
 | E-posta | `admin@opencard.com` |
 | Şifre | `opencard123` |
 
-`backend/.env`'deki `ADMIN_DEFAULT_*` değişkenlerinden okunur, `seed_admin.py` çalıştığında DB'ye yazılır. Prod'da mutlaka değiştir.
+Prod'da `backend/.env` içindeki `ADMIN_DEFAULT_*` ve `SECRET_KEY` mutlaka değiştirilmeli.
 
 ---
 
 ## 6. Tema
 
-Hem public hem admin **karanlık tema** (`opencarddark`) ile gelir. daisyUI custom theme tanımı [frontend/src/index.css](frontend/src/index.css) ve [admin/src/index.css](admin/src/index.css) içinde. Koyu mavi-siyah zemin, turuncu primary vurgu.
+Hem public hem admin **karanlık tema** (`opencarddark`) ile gelir; light tema da var. daisyUI custom theme tanımı [frontend/src/index.css](frontend/src/index.css) ve [admin/src/index.css](admin/src/index.css) içinde. `<html data-theme="opencarddark">` her iki `index.html`'de set edilmiş — FOUC yok.
 
-`<html data-theme="opencarddark">` her iki `index.html`'de set edilmiş — FOUC yok.
+**Kural:** Aydınlık modda yazılar siyah, karanlık modda beyaz. Hardcoded `text-white`/`text-black` yerine `text-base-content` kullan; renkli arka plan üzerinde kasıtlı kontrast renkleri kabul edilir.
 
 ---
 
 ## 7. Veri akışı
 
-### Cascade mantığı (önemli)
+### Cascade mantığı
 
 Public dashboard verileri **3 katmanlı cascade** ile beslenir:
 
@@ -154,11 +146,11 @@ Public dashboard verileri **3 katmanlı cascade** ile beslenir:
 2. **Neighborhood-bazlı** (`neighborhood_metrics`, `neighborhood_analytics`) — mahalle + kategori kombinasyonu
 3. **District-bazlı** (`district_metrics`, `district_analytics`) — ilçe + kategori (fallback)
 
-Her alan ayrı ayrı resolve edilir: `restaurant_value || neighborhood_value || district_value || empty`. Public API response'unda `analytics_source` ve `metrics_source` alanları kaynak seviyesini bildirir (`"restaurant" | "neighborhood" | "district_fallback" | "none"`).
+Her alan ayrı ayrı resolve edilir: `restaurant_value || neighborhood_value || district_value || empty`. Public API response'unda `analytics_source` ve `metrics_source` alanları kaynak seviyesini bildirir.
 
-### Platform Müşteri Dağılımı — restoranlardan summed
+### Platform Müşteri Dağılımı
 
-Dashboard'daki "Platform Müşteri Dağılımı" kartı, analytics tablosundan değil **aktif restoranların `platforms[].customers` toplamından** beslenir. Yani admin'de restoran müşteri sayısını değiştirince ana sayfa anında yansır.
+Dashboard'daki "Platform Müşteri Dağılımı" kartı, analytics tablosundan değil **aktif restoranların `platforms[].customers` toplamından** beslenir.
 
 ---
 
@@ -167,40 +159,60 @@ Dashboard'daki "Platform Müşteri Dağılımı" kartı, analytics tablosundan d
 | Sayfa | Açıklama |
 |---|---|
 | **Dashboard** | Özet kartlar |
-| **Veri Girişi** | Tek sayfada district + mahalle × kategori bazlı 11 alan (dashboard kartlarıyla aynı düzen). [Analytics + Metrics birleşimi] |
-| **Restaurants** | Restoran CRUD + restaurant-level metric/analytics override (Faz 3). Sil + Pasifleştir + Aktifleştir. |
-| **Case Studies** | Başarı hikayeleri (CSV export only, manuel + Sil/Pasifleştir/Aktifleştir) |
-| **Applications** | Kurye başvuruları (admin'den de oluşturulabilir, düzenlenebilir) |
-| **Categories** | 18 kategori (negatif sort_order engeli) |
-| **Platforms** | Yemeksepeti/Getir/Trendyol — name normalize edilmiş duplicate kontrolü |
-| **Districts** | 39 İstanbul ilçesi + ~874 mahalle. **"Sadece verisi olanlar"** toggle ile filtreleme |
-| **Sadakat** | Loyalty sayfası içeriğini yönet (~20 alan + N feature card) |
+| **Veri Girişi** | Tek sayfada district/neighborhood × kategori × dönem; dashboard layout'unun aynası |
+| **Restaurants** | Restoran CRUD + restaurant-level metric/analytics override |
+| **Case Studies** | Başarı hikayeleri (görsel + before/after metrikler) |
+| **Applications** | Kurye başvuruları |
+| **Categories** | 18+ kategori |
+| **Platforms** | Yemeksepeti / Trendyol / Getir |
+| **Districts** | 39 İstanbul ilçesi + ~874 mahalle |
+| **Sadakat** | Loyalty sayfası içeriğini yönet (stats + hero + 6 feature card) |
 
 ---
 
-## 9. CSV import / export
+## 9. CSV import / export — **Flat şema** (Mayıs 2026)
 
-### Hangi sayfada hangi CSV var?
+Tüm CSV'ler **flat** — hiçbir hücrede JSON/dict/list yok. Her sütun saf skaler (yazı veya rakam). Sabit-uzunluklu yapılar (cancel sebepleri, heatmap, vb.) prefix'li çoklu sütunlara açılır.
 
-| Admin sayfası | CSV dosyası | Açıklama |
-|---|---|---|
-| Restaurants | `restaurants.csv` | name, district_id, **neighborhood_id**, category_id, is_active, platforms (JSON) |
-| Veri Girişi → Analytics | `district_analytics.csv` / `neighborhood_analytics.csv` | platform × bütçe × forecast |
-| Veri Girişi → Metrics | `district_metrics.csv` / `neighborhood_metrics.csv` | iptal/iade/heatmap/yorum (JSON sütunlar) |
-| Analytics → Rakip | `competitors.csv` | rakip platform performansı |
+### 5 CSV dosyası
+
+| CSV | Sütun | Endpoint | Ne içerir |
+|---|---|---|---|
+| `restaurants.csv` | 9 | `/admin/restaurants/csv` | Restoran adı + ilçe + 3 platform müşteri sayısı |
+| `data_entry_district.csv` | **262** | `/admin/data-entry/csv/{import,export}?scope=district` | İlçe × kategori × dönem için TÜM analytics + metrics (analytics 27 + scaler 13 + cancel 5 + return 4 + rating 10 + courier 8 + neg_platform 3 + word_cloud 20 + heatmap 168) |
+| `data_entry_neighborhood.csv` | **263** | `/admin/data-entry/csv/...?scope=neighborhood` | Aynısı + `neighborhood` sütunu |
+| `case_studies.csv` | 20 | `/admin/case-studies/csv` | Başarı hikayeleri (5 slot before_complaint + 5 slot after_improvement) |
+| `loyalty.csv` | 27 | `/admin/loyalty/csv` | Sadakat sayfası içeriği (stats + hero + 6 slot feature card) |
+
+### Şema kaynağı (tek doğruluk noktası)
+
+- [backend/app/services/metric_schemas.py](backend/app/services/metric_schemas.py) — sabit etiketler + slot sayıları (PLATFORM_KEYS, CANCEL_REASON_SCHEMA, RETURN_REASON_SCHEMA, RATING_STARS, WORD_SLOTS, CASE_STUDY_SLOTS, FEATURE_CARD_SLOTS, DAY_KEYS/HOUR_KEYS)
+- [backend/app/services/csv_service.py](backend/app/services/csv_service.py) — kolon listeleri + flatten/unflatten helpers
+- Yeni sebep/slot eklemek için `metric_schemas.py`'yi düzenle, sonra `python scripts/build_example_csvs.py` ile örnekleri yeniden üret
+
+### Görseller CSV'de DEĞİL
+
+CSV'lerde URL/binary yok. Görseller admin'den ayrı upload edilir:
+- `restaurants` — görsel yok
+- `case_studies` — `before_image_url`, `after_image_url` (admin form)
+- `loyalty` — `loyalty_hero_bg_url` + her feature card için `image_url`
+
+### Örnek dosyalar
+
+`examples/` klasöründe 5 hazır CSV. Yeniden üretmek için:
+```bash
+python scripts/build_example_csvs.py
+```
 
 ### CSV tolerance
 
-CSV import **tolerant**: eksik sütun → warning, satır atlanmaz; bozuk satır → skip + rapor. Response: `{ created, updated, skipped, warnings, errors }`.
+- Eksik sütun → warning, satır atlanmaz (default değer)
+- Boş satır → atlanır + uyarı
+- NOT NULL ihlali (örn. district_id boş) → satır skip + hata
+- FK referansı yoksa (örn. district yok) → satır skip + hata
+- Min/Max ihlali → değer kabul edilir, uyarı
 
-### Hızlı sentetik veri üretimi
-
-```bash
-cd backend
-.venv/bin/python ../scripts/generate_synthetic.py   # 195 restoran + analytics + metrics
-```
-
-Bu script backend ayağa kalkmışken `/admin/...` endpoint'lerine POST yapar.
+Response formatı: `{ created, updated, skipped, warnings, errors }`
 
 ---
 
@@ -208,11 +220,11 @@ Bu script backend ayağa kalkmışken `/admin/...` endpoint'lerine POST yapar.
 
 CSV gerekmez. Tüm tablolar için admin'de manuel form var:
 
-- **Veri Girişi sayfası**: tek scope seçimi (ilçe/mahalle × kategori × dönem) altında 11 kartlı form — dashboard layout'unun aynası
-- **Restaurants**: temel alanlar + Faz 3 metric/analytics override
+- **Veri Girişi sayfası**: scope (ilçe/mahalle × kategori × dönem) altında 11 kartlı form
+- **Restaurants**: temel alanlar + restaurant-bazlı override
 - **Heatmap editor**: 7×24 tıklamalı 5-renkli grid (KVKK uyumlu)
-- **Courier comparison editor**: restoran kuryesi vs kendi kuryen yapılandırılmış form
-- **Feature cards**: Sadakat sayfası için dinamik kart listesi (ekle/sil/sırala)
+- **Courier comparison editor**: yapılandırılmış form
+- **Feature cards**: Sadakat sayfası için 6 slot
 
 ---
 
@@ -222,63 +234,61 @@ CSV gerekmez. Tüm tablolar için admin'de manuel form var:
 opencard/
 ├── backend/
 │   ├── app/
-│   │   ├── models/           # SQLAlchemy modelleri
-│   │   │   ├── restaurant.py # Restaurant, RestaurantPlatform, RestaurantMetrics, RestaurantAnalytics
-│   │   │   ├── analytics.py  # DistrictAnalytics, NeighborhoodAnalytics
-│   │   │   ├── metrics.py    # DistrictMetrics, NeighborhoodMetrics, SiteSettings
-│   │   │   └── ...
+│   │   ├── models/                 # SQLAlchemy modelleri
 │   │   ├── routers/
-│   │   │   ├── admin/        # JWT korumalı admin endpoint'leri
-│   │   │   └── ...           # Public endpoint'ler
-│   │   ├── schemas/          # Pydantic şemaları
-│   │   ├── services/         # csv_service, restaurant_service, storage_service
+│   │   │   ├── admin/              # JWT korumalı endpoint'ler
+│   │   │   │   ├── data_entry.py   # CSV import/export (district+neighborhood)
+│   │   │   │   ├── loyalty.py      # SiteSettings + CSV
+│   │   │   │   ├── case_studies.py # 5-slot CSV
+│   │   │   │   └── ...
+│   │   │   └── ...
+│   │   ├── services/
+│   │   │   ├── csv_service.py      # Flat CSV kolon listeleri + flatten/unflatten
+│   │   │   ├── metric_schemas.py   # Sabit etiketler + slot sayıları
+│   │   │   └── ...
 │   │   └── main.py
 │   ├── scripts/
 │   │   ├── seed_*.py
-│   │   ├── init_local_db.py
-│   │   └── migrate_to_postgres.py  # SQLite → Postgres tek-shot
-│   ├── alembic/              # Migrations (versions/ şimdilik boş — create_all kullanılıyor)
-│   └── media/                # Yüklenen görseller (case studies)
+│   │   └── init_local_db.py
+│   └── alembic/
 │
-├── admin/                    # Yönetim paneli (React)
-│   └── src/
-│       ├── pages/            # Dashboard, DataEntry, Restaurants, Districts, Sadakat, …
-│       ├── components/
-│       │   ├── layout/       # AdminLayout, Sidebar, ErrorBoundary
-│       │   └── ui/           # HeatmapEditor, CourierComparisonEditor, DataTable, FormModal …
-│       └── api/              # client.js + per-resource helpers
+├── admin/                          # Yönetim paneli (React, port 5181)
+├── frontend/                       # Public dashboard (React, port 5173)
 │
-├── frontend/                 # Public landing + dashboard (React)
-│   └── src/
-│       ├── components/       # IstanbulMap, Kiyaslama, PlatformDonutCard, LoyaltyPage …
-│       └── pages/            # HomePage, ApplyPage, NotFoundPage
+├── examples/                       # 5 örnek CSV (flat şema)
+│   ├── restaurants.csv             # 9 sütun
+│   ├── data_entry_district.csv     # 262 sütun
+│   ├── data_entry_neighborhood.csv # 263 sütun
+│   ├── case_studies.csv            # 20 sütun
+│   └── loyalty.csv                 # 27 sütun
 │
-├── synthetic_csves/          # 195 restoran + analytics + metrics test verisi (neighborhood_id dahil)
-├── examples/                 # CSV şablonları (kolon kontratları)
-├── scripts/                  # generate_synthetic.py, csv_fill_neighborhood.py
-├── test_plans/               # Manuel test senaryoları (markdown)
-└── POSTGRES_MIGRATION_PLAN.md  # SQLite → Postgres geçiş tarihçesi (✅ tamamlandı)
+├── scripts/
+│   ├── build_example_csvs.py       # Örnek CSV'leri programatik üretir
+│   └── generate_synthetic.py       # Synthetic veri (eski format — kullanma)
+│
+├── sunum/                          # Saha/müdür için CSV sunumu + örnekler
+└── SAHA_REHBERI.md                 # Saha ekibi için Türkçe rehber
 ```
 
 ---
 
 ## 12. Temel kavramlar
 
-- **Analytics** — platform bazlı veriler (her ilçe × kategori × platform × dönem için müşteri sayısı, bütçe, tahmin)
-- **Metrics** — platform bağımsız aggregate veriler (iptal/iade oranları, performans skoru, kıyaslama, saatlik heatmap, yorum analizi, kurye karşılaştırması)
-- **Restaurant-level override** (Faz 3) — bir restoran admin'den özel metric/analytics girildiyse cascade'in tepesinde durur
-- **Case Studies** — anasayfada gösterilen başarı hikayeleri (önce/sonra metrikleri + görsel)
-- **Applications** — kurye başvuruları (public form → admin'de listelenir, manuel oluşturulabilir, düzenlenebilir)
-- **Site Settings** — Sadakat sayfasındaki tüm metinler, görseller, statlar ve feature cards (dinamik)
+- **Analytics** — platform bazlı veriler (ilçe × kategori × platform × dönem için müşteri/bütçe/tahmin)
+- **Metrics** — platform bağımsız aggregate veriler (iptal/iade, performans, kıyaslama, heatmap, yorum)
+- **Restaurant-level override** — restoran admin'den özel veri girildiyse cascade'in tepesi
+- **Case Studies** — anasayfada başarı hikayeleri (önce/sonra metrik + görsel)
+- **Site Settings** — Sadakat sayfasındaki tüm metinler/görseller/statlar
 - **Cascade** — Restaurant → Neighborhood → District alan-bazlı fallback
+- **Flat CSV** — JSON-free şema; nested yapılar prefix'li sütunlara açılır (Mayıs 2026)
 
 ---
 
 ## 13. Yetkilendirme
 
 Backend JWT (HS256) tabanlı. İki endpoint:
-- `POST /auth/login` — JSON body (`email`, `password`) — frontend admin paneli kullanır
-- `POST /auth/token` — Form-encoded (OAuth2 password flow) — Swagger UI "Authorize" butonu kullanır
+- `POST /auth/login` — JSON body (`email`, `password`)
+- `POST /auth/token` — Form-encoded (OAuth2 password flow) — Swagger UI "Authorize" butonu
 
 Token Authorization header'da `Bearer <token>` olarak gönderilir.
 
@@ -288,26 +298,27 @@ Token Authorization header'da `Bearer <token>` olarak gönderilir.
 
 | Sorun | Çözüm |
 |---|---|
-| `Address already in use` (port 8003/5173/5181) | `lsof -ti:<port> \| xargs kill -9` |
+| `Address already in use` (8003/5173/5181) | `lsof -ti:<port> \| xargs kill -9` |
 | Admin'de "401 Unauthorized" | Token süresi dolmuş — admin'den çıkıp tekrar giriş yap |
-| Frontend'de "API 500" | Backend ayakta mı? `curl http://localhost:8003/health` |
-| "Bu seçim için veri yok" banner'ı | Mahalle × kategori için Analytics/Metrics girilmemiş; cascade ile ilçe verisinden çekilecek veya admin'den giriş gerek |
-| CSV import "Eksik sütun" uyarısı | Eksik sütun varsa import yine geçer (warning); kolon başlıkları `examples/` veya `synthetic_csves/` ile birebir aynı olmalı |
-| `Module 'requests' not found` (generate_synthetic.py) | `cd backend && .venv/bin/pip install requests` |
-| Postgres'e bağlanamıyor | `brew services list` → postgresql@15 started mi? `psql -U opencard -d opencard -h localhost` ile test |
+| Frontend'de "API 500" | `curl http://localhost:8003/health` |
+| "Bu seçim için veri yok" banner | Mahalle × kategori için veri yok; cascade fallback veya admin'den giriş |
+| CSV import "Eksik sütun" | Eksik sütun → warning, default değer atanır; başlıklar `examples/`'le aynı olmalı |
+| Postgres'e bağlanamıyor | `brew services list` → postgresql@15 started; `psql -U opencard -d opencard -h localhost` |
+| `Module 'requests' not found` | `cd backend && .venv/bin/pip install requests` |
 
 ---
 
-## 15. Yol haritası / yapılan büyük güncellemeler
+## 15. Yol haritası / büyük güncellemeler
 
-- ✅ SQLite → PostgreSQL geçişi (2026-05-17) — bkz. [POSTGRES_MIGRATION_PLAN.md](POSTGRES_MIGRATION_PLAN.md)
-- ✅ Restaurant-level metric/analytics override (Faz 3)
-- ✅ Cascade dashboard endpoint (restaurant → neighborhood → district)
+- ✅ SQLite → PostgreSQL geçişi (2026-05-17)
+- ✅ Restaurant-level override
+- ✅ Cascade dashboard endpoint
 - ✅ Heatmap interactive grid editor (KVKK uyumlu)
-- ✅ Loyalty page tamamen dinamik (hero, stats, features, cards)
+- ✅ Loyalty page dinamik (hero, stats, features, cards)
 - ✅ Custom dark theme (opencarddark)
-- ✅ Veri Girişi unified page (Analytics + Metrics birleşimi)
-- ⏳ Alembic baseline migration (versions/ şu an boş, `create_all` kullanılıyor)
+- ✅ Veri Girişi unified page
+- ✅ **Flat CSV mimarisi** (2026-05-21) — 5 CSV, JSON-free, slot-tabanlı
+- ⏳ Alembic baseline migration
 - ⏳ Integration test suite
 
 ---
@@ -317,3 +328,11 @@ Token Authorization header'da `Bearer <token>` olarak gönderilir.
 Backend çalışırken Swagger UI: <http://localhost:8003/docs>
 
 "Authorize" butonu (sağ üst) → username = admin email, password = admin şifresi. Token otomatik tüm `/admin/*` isteklerine eklenir.
+
+---
+
+## 17. İlgili dokümanlar
+
+- [SAHA_REHBERI.md](SAHA_REHBERI.md) — Saha ekibi için Türkçe operasyonel rehber
+- [sunum/CSV_KILAVUZU.md](sunum/CSV_KILAVUZU.md) — Müdür sunumu: CSV alanları + örnekler
+- [POSTGRES_MIGRATION_PLAN.md](POSTGRES_MIGRATION_PLAN.md) — SQLite → Postgres geçiş tarihçesi

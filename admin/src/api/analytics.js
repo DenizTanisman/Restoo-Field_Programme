@@ -40,27 +40,32 @@ export const analyticsApi = {
 };
 
 export const metricsApi = {
+  // Mayıs 2026: CSV endpoint'leri /admin/data-entry/csv/* altında.
+  // siteSettings → loyaltyApi'ye taşındı.
   district: {
     list: (params = {}) => request(`/admin/metrics/district${qs(params)}`),
     upsert: (data) => request("/admin/metrics/district", { method: "POST", body: data }),
-    exportCsv: () => requestBlob("/admin/metrics/district/csv"),
-    importCsv: (file) => postCsv("/admin/metrics/district/csv", file),
   },
   neighborhood: {
     list: (params = {}) => request(`/admin/metrics/neighborhood${qs(params)}`),
     upsert: (data) => request("/admin/metrics/neighborhood", { method: "POST", body: data }),
-    exportCsv: () => requestBlob("/admin/metrics/neighborhood/csv"),
-    importCsv: (file) => postCsv("/admin/metrics/neighborhood/csv", file),
   },
-  siteSettings: {
-    get: () => request("/admin/metrics/site-settings"),
-    upsert: (data) => request("/admin/metrics/site-settings", { method: "POST", body: data }),
-  },
+};
+
+export const loyaltyApi = {
+  get: () => request("/admin/loyalty"),
+  upsert: (data) => request("/admin/loyalty", { method: "POST", body: data }),
+  exportCsv: () => requestBlob("/admin/loyalty/csv"),
+  importCsv: (file) => postCsv("/admin/loyalty/csv", file),
 };
 
 // Birleşik Veri Girişi endpoint'leri (yeni format)
 export const dataEntryApi = {
   importCsv: (scope, file) => postCsv(`/admin/data-entry/csv/import?scope=${encodeURIComponent(scope)}`, file),
+  exportCsv: (scope, districtId) => {
+    const q = districtId ? `&district_id=${encodeURIComponent(districtId)}` : "";
+    return requestBlob(`/admin/data-entry/csv/export?scope=${encodeURIComponent(scope)}${q}`);
+  },
   fetch: ({ scope, districtId, neighborhoodId, categoryId }) => {
     const p = new URLSearchParams({ scope, district_id: districtId });
     if (neighborhoodId) p.set("neighborhood_id", neighborhoodId);

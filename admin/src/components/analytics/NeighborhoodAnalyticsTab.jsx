@@ -175,15 +175,15 @@ export default function NeighborhoodAnalyticsTab() {
                   <input type="number" className="input input-bordered input-sm" value={p.customers} onChange={(e) => setPlatformField(p.platform_id, "customers", e.target.value)} />
                 </div>
                 <div className="form-control">
-                  <label className="label label-text-sm">Günlük (₺)</label>
+                  <label className="label label-text-sm">Günlük</label>
                   <input type="number" step="0.01" className="input input-bordered input-sm" value={p.daily_forecast} onChange={(e) => setPlatformField(p.platform_id, "daily_forecast", e.target.value)} />
                 </div>
                 <div className="form-control">
-                  <label className="label label-text-sm">Aylık (₺)</label>
+                  <label className="label label-text-sm">Aylık</label>
                   <input type="number" step="0.01" className="input input-bordered input-sm" value={p.monthly_forecast} onChange={(e) => setPlatformField(p.platform_id, "monthly_forecast", e.target.value)} />
                 </div>
                 <div className="form-control">
-                  <label className="label label-text-sm">Yıllık (₺)</label>
+                  <label className="label label-text-sm">Yıllık</label>
                   <input type="number" step="0.01" className="input input-bordered input-sm" value={p.yearly_forecast} onChange={(e) => setPlatformField(p.platform_id, "yearly_forecast", e.target.value)} />
                 </div>
               </div>
@@ -197,7 +197,7 @@ export default function NeighborhoodAnalyticsTab() {
             <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
               {["ad_budget", "campaign_rate", "coupon_rate", "flash_rate", "joker_rate"].map((k) => (
                 <div key={k} className="form-control">
-                  <label className="label label-text-sm">{k === "ad_budget" ? "Bütçe (₺)" : k.replace("_", " ") + " (%)"}</label>
+                  <label className="label label-text-sm">{k === "ad_budget" ? "Bütçe" : k.replace("_", " ") + " (%)"}</label>
                   <input type="number" step="0.01" className="input input-bordered input-sm" value={budget[k]} onChange={(e) => setBudget({ ...budget, [k]: e.target.value })} />
                 </div>
               ))}

@@ -1,8 +1,0 @@
-name,district_id,category_id,is_active,platforms
-Köfteci Hasan,34-kadıköy,3,true,"[{""platform_id"": 1, ""customers"": 120}, {""platform_id"": 2, ""customers"": 80}]"
-Pizza Napoli,34-kadıköy,2,true,"[{""platform_id"": 1, ""customers"": 200}]"
-Burger House,34-beşiktaş,1,true,"[{""platform_id"": 1, ""customers"": 150}, {""platform_id"": 3, ""customers"": 90}]"
-Sushi Tokyo,34-şişli,4,true,"[{""platform_id"": 2, ""customers"": 60}]"
-Tatlıcı Mahmut,34-fatih,5,true,"[]"
-Kahvaltı Bahçe,34-üsküdar,6,true,"[{""platform_id"": 1, ""customers"": 75}]"
-Pasif Restoran,34-kadıköy,1,false,"[]"

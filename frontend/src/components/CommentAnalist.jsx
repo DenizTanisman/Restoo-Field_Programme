@@ -163,7 +163,7 @@ function DistrictRanking({ rows }) {
               <span className="text-[10px] text-base-content/60 w-24 shrink-0 truncate">{d.district_name}</span>
               <div className="flex-1 bg-base-200 rounded h-5 overflow-hidden">
                 <div className={`${riskBar(d.risk)} h-full rounded flex items-center pl-2`} style={{ width: `${pct}%` }}>
-                  <span className="text-[9px] text-white font-bold">%{pct.toFixed(0)}</span>
+                  <span className="text-[9px] text-black font-bold">%{pct.toFixed(0)}</span>
                 </div>
               </div>
               <span className="text-[9px] text-base-content/50 w-16 text-right shrink-0">

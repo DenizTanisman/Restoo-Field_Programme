@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import json
 from typing import Any
 
 from fastapi import APIRouter, Depends, File, HTTPException, Query, Response, UploadFile, status
@@ -24,7 +23,15 @@ from app.models import (
     RestaurantPlatform,
 )
 from app.schemas import RestaurantSchema
-from app.services.csv_service import RESTAURANT_COLUMNS, parse_csv_upload, rows_to_csv
+from app.services.csv_service import (
+    RESTAURANT_COLUMNS,
+    parse_csv_upload,
+    rows_to_csv,
+    flatten_restaurant_platforms,
+    unflatten_restaurant_platforms,
+    to_bool, to_int,
+)
+from app.services.metric_schemas import PLATFORM_KEYS
 from app.services.restaurant_service import LOAD_OPTIONS, serialize_restaurant
 
 
@@ -406,27 +413,45 @@ async def delete_restaurant(
     await db.commit()
 
 
-# === CSV ===
+# === CSV (flat: 9 sütun) ===
 
-def _restaurant_to_csv_row(r: Restaurant) -> dict[str, Any]:
+async def _platform_maps(db: AsyncSession) -> tuple[dict[int, str], dict[str, int]]:
+    """Platform.id ↔ PLATFORM_KEYS eşleme."""
+    rows = (await db.execute(select(Platform.id, Platform.name))).all()
+    id_to_key: dict[int, str] = {}
+    key_to_id: dict[str, int] = {}
+    for pid, name in rows:
+        lower = (name or "").lower()
+        for key in PLATFORM_KEYS:
+            if key in lower:
+                id_to_key[pid] = key
+                key_to_id.setdefault(key, pid)
+                break
+    return id_to_key, key_to_id
+
+
+def _restaurant_to_csv_row(r: Restaurant, platform_id_to_key: dict[int, str]) -> dict[str, Any]:
     return {
+        "id": r.id,
         "name": r.name,
         "district_id": r.district_id,
         "neighborhood_id": r.neighborhood_id if r.neighborhood_id is not None else "",
         "category_id": r.category_id,
         "is_active": "true" if r.is_active else "false",
-        "platforms": json.dumps(
-            [{"platform_id": rp.platform_id, "customers": rp.customers} for rp in r.platforms]
-        ),
+        **flatten_restaurant_platforms(r.platforms, platform_id_to_key),
     }
 
 
 @router.get("/csv", response_class=Response)
 async def export_csv(db: AsyncSession = Depends(get_db)):
+    platform_id_to_key, _ = await _platform_maps(db)
     rows = (
         await db.execute(select(Restaurant).options(*LOAD_OPTIONS).order_by(Restaurant.id))
     ).scalars().all()
-    csv_text = rows_to_csv((_restaurant_to_csv_row(r) for r in rows), RESTAURANT_COLUMNS)
+    csv_text = rows_to_csv(
+        (_restaurant_to_csv_row(r, platform_id_to_key) for r in rows),
+        RESTAURANT_COLUMNS,
+    )
     return Response(
         content=csv_text,
         media_type="text/csv",
@@ -437,12 +462,14 @@ async def export_csv(db: AsyncSession = Depends(get_db)):
 @router.post("/csv", response_model=dict)
 async def import_csv(file: UploadFile = File(...), db: AsyncSession = Depends(get_db)):
     records, warnings = await parse_csv_upload(file, RESTAURANT_COLUMNS)
+    _, platform_key_to_id = await _platform_maps(db)
+
     created = 0
     updated = 0
     skipped = 0
     errors: list[str] = []
 
-    for idx, row in enumerate(records, start=2):  # 2 = ilk veri satırı (1=header)
+    for idx, row in enumerate(records, start=2):
         name = (row.get("name") or "").strip()
         district_id = (row.get("district_id") or "").strip()
         category_id_raw = (row.get("category_id") or "").strip()
@@ -456,6 +483,7 @@ async def import_csv(file: UploadFile = File(...), db: AsyncSession = Depends(ge
             errors.append(f"satır {idx}: category_id geçersiz — atlandı")
             skipped += 1
             continue
+
         neighborhood_id: int | None = None
         nb_raw = (row.get("neighborhood_id") or "").strip()
         if nb_raw:
@@ -464,17 +492,12 @@ async def import_csv(file: UploadFile = File(...), db: AsyncSession = Depends(ge
             except ValueError:
                 errors.append(f"satır {idx}: neighborhood_id geçersiz — mahallesiz kaydedildi")
                 neighborhood_id = None
-        is_active = (row.get("is_active") or "true").strip().lower() not in {"false", "0", "no", ""}
 
-        platforms: list[PlatformLink] = []
-        platforms_raw = (row.get("platforms") or "").strip()
-        if platforms_raw:
-            try:
-                parsed = json.loads(platforms_raw)
-                platforms = [PlatformLink(**p) for p in parsed]
-            except Exception as exc:  # noqa: BLE001
-                errors.append(f"satır {idx}: platforms JSON hatası ({exc}) — boş kabul edildi")
-                platforms = []
+        is_active = to_bool(row.get("is_active"), default=True)
+
+        # 3 platform sütunundan platforms listesi inşa et
+        platforms_raw = unflatten_restaurant_platforms(row, platform_key_to_id)
+        platforms = [PlatformLink(**p) for p in platforms_raw]
 
         try:
             await _ensure_refs(db, district_id, category_id, platforms, neighborhood_id=neighborhood_id)
@@ -483,15 +506,27 @@ async def import_csv(file: UploadFile = File(...), db: AsyncSession = Depends(ge
             skipped += 1
             continue
 
-        existing = (
-            await db.execute(
+        # id varsa o kayıt; yoksa name+district kombinasyonu
+        existing = None
+        id_raw = (row.get("id") or "").strip()
+        if id_raw:
+            try:
+                rid = int(id_raw)
+                existing = (await db.execute(
+                    select(Restaurant).where(Restaurant.id == rid)
+                )).scalar_one_or_none()
+            except ValueError:
+                pass
+        if existing is None:
+            existing = (await db.execute(
                 select(Restaurant).where(
                     Restaurant.name == name, Restaurant.district_id == district_id
                 )
-            )
-        ).scalar_one_or_none()
+            )).scalar_one_or_none()
 
         if existing:
+            existing.name = name
+            existing.district_id = district_id
             existing.category_id = category_id
             existing.neighborhood_id = neighborhood_id
             existing.is_active = is_active

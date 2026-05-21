@@ -188,15 +188,15 @@ export default function DistrictAnalyticsTab() {
                   <input type="number" className="input input-bordered input-sm" value={p.customers} onChange={(e) => setPlatformField(p.platform_id, "customers", e.target.value)} />
                 </div>
                 <div className="form-control">
-                  <label className="label label-text-sm">Günlük tahmin (₺)</label>
+                  <label className="label label-text-sm">Günlük tahmin</label>
                   <input type="number" step="0.01" className="input input-bordered input-sm" value={p.daily_forecast} onChange={(e) => setPlatformField(p.platform_id, "daily_forecast", e.target.value)} />
                 </div>
                 <div className="form-control">
-                  <label className="label label-text-sm">Aylık tahmin (₺)</label>
+                  <label className="label label-text-sm">Aylık tahmin</label>
                   <input type="number" step="0.01" className="input input-bordered input-sm" value={p.monthly_forecast} onChange={(e) => setPlatformField(p.platform_id, "monthly_forecast", e.target.value)} />
                 </div>
                 <div className="form-control">
-                  <label className="label label-text-sm">Yıllık tahmin (₺)</label>
+                  <label className="label label-text-sm">Yıllık tahmin</label>
                   <input type="number" step="0.01" className="input input-bordered input-sm" value={p.yearly_forecast} onChange={(e) => setPlatformField(p.platform_id, "yearly_forecast", e.target.value)} />
                 </div>
               </div>
@@ -210,7 +210,7 @@ export default function DistrictAnalyticsTab() {
             <h4 className="font-semibold mb-2">Bütçe & Kampanya</h4>
             <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
               <div className="form-control">
-                <label className="label label-text-sm">Reklam Bütçesi (₺)</label>
+                <label className="label label-text-sm">Reklam Bütçesi</label>
                 <input type="number" step="0.01" className="input input-bordered input-sm" value={budget.ad_budget} onChange={(e) => setBudget({ ...budget, ad_budget: e.target.value })} />
               </div>
               <div className="form-control">

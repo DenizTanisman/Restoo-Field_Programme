@@ -1,0 +1,4 @@
+id,name,district_id,neighborhood_id,category_id,is_active,yemeksepeti_customers,trendyol_customers,getir_customers
+,Ali Usta Kebap,34-fatih,,3,true,1240,860,420
+,Pizza Roma,34-besiktas,,5,true,980,1100,510
+,Burger House,34-kadikoy,,7,false,0,0,0

@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { analyticsApi, metricsApi, dataEntryApi } from "../api/analytics";
 import { districtsApi } from "../api/districts";
 import { categoriesApi } from "../api/categories";
@@ -33,6 +33,22 @@ function downloadFile(filename, content) {
   URL.revokeObjectURL(url);
 }
 
+async function downloadCsvFromBlob(blobPromise, filename) {
+  try {
+    const blob = await blobPromise;
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  } catch (e) {
+    alert(`CSV indirilemedi: ${e.message}`);
+  }
+}
+
 // Public dashboard endpoint'inden customer dağılımını çek (restoranlardan summed)
 async function fetchPublicCustomers({ scopeType, districtId, neighborhoodId, categoryId }) {
   const path = scopeType === "district"
@@ -56,6 +72,15 @@ async function fetchPublicCustomers({ scopeType, districtId, neighborhoodId, cat
 // Kıyaslama Metrikleri, Saatlik Yoğunluk, Senin Kuryen, Yorum Analizi.
 
 const today = () => new Date().toISOString().slice(0, 10);
+
+// Dönem başı + 1 ay → dönem sonu (ISO date string)
+const addOneMonth = (isoDate) => {
+  if (!isoDate) return "";
+  const d = new Date(isoDate);
+  if (Number.isNaN(d.getTime())) return "";
+  d.setMonth(d.getMonth() + 1);
+  return d.toISOString().slice(0, 10);
+};
 
 const EMPTY_PLATFORM = { ad_budget: 0, campaign_rate: 0, coupon_rate: 0, flash_rate: 0, joker_rate: 0, daily_forecast: 0, monthly_forecast: 0, yearly_forecast: 0 };
 
@@ -365,11 +390,11 @@ export default function DataEntryPage() {
             </div>
           </div>
 
-          {/* CSV import + örnek indirme */}
+          {/* CSV import/export + mevcut veri indirme */}
           <div className="mt-3 p-3 rounded-lg border border-base-300 bg-base-200/50">
             <div className="flex justify-between items-center mb-2">
-              <h3 className="text-sm font-semibold">📥 CSV İmport</h3>
-              <p className="text-xs opacity-60">İlçe veya Mahalle bazlı toplu veri yükle</p>
+              <h3 className="text-sm font-semibold">📥 CSV Import / Export</h3>
+              <p className="text-xs opacity-60">Flat şema (262/263 sütun) — her hücre saf yazı/rakam</p>
             </div>
             <div className="flex flex-wrap gap-2 items-center">
               <CsvImportBtn label="📁 İlçe CSV içeri aktar" scope="district" />
@@ -377,18 +402,21 @@ export default function DataEntryPage() {
               <button
                 type="button"
                 className="btn btn-xs btn-ghost"
-                onClick={() => downloadFile("district_data_ornek.csv", SAMPLE_DISTRICT_CSV)}
-              >📄 İlçe Örnek CSV indir</button>
+                onClick={() => downloadCsvFromBlob(dataEntryApi.exportCsv("district", districtId || undefined), "data_entry_district.csv")}
+              >📤 İlçe verisini indir</button>
               <button
                 type="button"
                 className="btn btn-xs btn-ghost"
-                onClick={() => downloadFile("neighborhood_data_ornek.csv", SAMPLE_NEIGHBORHOOD_CSV)}
-              >📄 Mahalle Örnek CSV indir</button>
+                onClick={() => downloadCsvFromBlob(dataEntryApi.exportCsv("neighborhood", districtId || undefined), "data_entry_neighborhood.csv")}
+              >📤 Mahalle verisini indir</button>
             </div>
+            <p className="text-[10px] opacity-50 mt-2">
+              Örnek dosyalar için: <code>opencard/examples/data_entry_district.csv</code> ve <code>data_entry_neighborhood.csv</code>
+            </p>
           </div>
 
           {/* Scope selector */}
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-3 mt-2 text-sm">
+          <div className="grid grid-cols-2 md:grid-cols-6 gap-3 mt-2 text-sm">
             <label className="flex flex-col gap-1">
               <span className="text-xs opacity-70">Kapsam</span>
               <select className="select select-bordered select-sm" value={scopeType} onChange={(e) => setScopeType(e.target.value)}>
@@ -420,8 +448,12 @@ export default function DataEntryPage() {
               </select>
             </label>
             <label className="flex flex-col gap-1">
-              <span className="text-xs opacity-70">Dönem</span>
+              <span className="text-xs opacity-70">Dönem Başı</span>
               <input type="date" className="input input-bordered input-sm" value={periodDate} onChange={(e) => setPeriodDate(e.target.value)} />
+            </label>
+            <label className="flex flex-col gap-1">
+              <span className="text-xs opacity-70">Dönem Sonu</span>
+              <input type="date" className="input input-bordered input-sm opacity-70 cursor-not-allowed" value={addOneMonth(periodDate)} readOnly tabIndex={-1} />
             </label>
           </div>
         </div>
@@ -449,7 +481,7 @@ export default function DataEntryPage() {
       <Section title="② Kampanya & Katılım Analizleri" subtitle="Reklam bütçesi + 4 katılım oranı (her platforma uygulanır)">
         {platforms.length === 0 ? <p className="text-xs opacity-60">Önce platform ekleyin.</p> : (
           <div className="grid grid-cols-2 md:grid-cols-5 gap-2 text-xs">
-            <NumField label="Reklam Bütçesi (₺)" value={perPlatform[platforms[0]?.id]?.ad_budget ?? 0} onChange={(v) => platforms.forEach((p) => updPlat(p.id, "ad_budget", v))} />
+            <NumField label="Reklam Bütçesi" value={perPlatform[platforms[0]?.id]?.ad_budget ?? 0} onChange={(v) => platforms.forEach((p) => updPlat(p.id, "ad_budget", v))} />
             <NumField label="Kampanya Katılım %" value={perPlatform[platforms[0]?.id]?.campaign_rate ?? 0} onChange={(v) => platforms.forEach((p) => updPlat(p.id, "campaign_rate", v))} />
             <NumField label="Kupon Katılım %" value={perPlatform[platforms[0]?.id]?.coupon_rate ?? 0} onChange={(v) => platforms.forEach((p) => updPlat(p.id, "coupon_rate", v))} />
             <NumField label="Flash Katılım %" value={perPlatform[platforms[0]?.id]?.flash_rate ?? 0} onChange={(v) => platforms.forEach((p) => updPlat(p.id, "flash_rate", v))} />
@@ -459,14 +491,14 @@ export default function DataEntryPage() {
       </Section>
 
       {/* === Kart 3: Tahmini Satış Verisi === */}
-      <Section title="③ Tahmini Satış Verisi" subtitle="Her platform için günlük / aylık / yıllık tahmin (₺)">
+      <Section title="③ Tahmini Satış Verisi" subtitle="Her platform için günlük / aylık / yıllık tahmin">
         {platforms.map((p) => (
           <div key={p.id} className="border-t border-base-200 pt-3 mt-3 first:border-t-0 first:pt-0 first:mt-0">
             <h4 className="text-sm font-medium mb-2">{p.name}</h4>
             <div className="grid grid-cols-3 gap-2 text-xs">
-              <NumField label="Günlük (₺)" value={perPlatform[p.id]?.daily_forecast ?? 0} onChange={(v) => updPlat(p.id, "daily_forecast", v)} />
-              <NumField label="Aylık (₺)" value={perPlatform[p.id]?.monthly_forecast ?? 0} onChange={(v) => updPlat(p.id, "monthly_forecast", v)} />
-              <NumField label="Yıllık (₺)" value={perPlatform[p.id]?.yearly_forecast ?? 0} onChange={(v) => updPlat(p.id, "yearly_forecast", v)} />
+              <NumField label="Günlük" value={perPlatform[p.id]?.daily_forecast ?? 0} onChange={(v) => updPlat(p.id, "daily_forecast", v)} />
+              <NumField label="Aylık" value={perPlatform[p.id]?.monthly_forecast ?? 0} onChange={(v) => updPlat(p.id, "monthly_forecast", v)} />
+              <NumField label="Yıllık" value={perPlatform[p.id]?.yearly_forecast ?? 0} onChange={(v) => updPlat(p.id, "yearly_forecast", v)} />
             </div>
           </div>
         ))}
@@ -509,10 +541,10 @@ export default function DataEntryPage() {
       {/* === Kart 8: Kıyaslama Metrikleri === */}
       <Section title="⑧ Kıyaslama Metrikleri" subtitle="Sepet, menü fiyatı, ciro, kurye ücreti">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-xs">
-          <NumField label="Ort. sepet (₺)" value={metrics.avg_basket} onChange={(v) => updMetric("avg_basket", v)} />
-          <NumField label="Ort. menü fiyatı (₺)" value={metrics.avg_menu_price} onChange={(v) => updMetric("avg_menu_price", v)} />
-          <NumField label="Aylık ciro (₺)" value={metrics.avg_monthly_revenue} onChange={(v) => updMetric("avg_monthly_revenue", v)} />
-          <NumField label="Kurye ücreti (₺)" value={metrics.courier_fee} onChange={(v) => updMetric("courier_fee", v)} />
+          <NumField label="Ort. sepet" value={metrics.avg_basket} onChange={(v) => updMetric("avg_basket", v)} />
+          <NumField label="Ort. menü fiyatı" value={metrics.avg_menu_price} onChange={(v) => updMetric("avg_menu_price", v)} />
+          <NumField label="Aylık ciro" value={metrics.avg_monthly_revenue} onChange={(v) => updMetric("avg_monthly_revenue", v)} />
+          <NumField label="Kurye ücreti" value={metrics.courier_fee} onChange={(v) => updMetric("courier_fee", v)} />
         </div>
       </Section>
 
@@ -547,7 +579,11 @@ export default function DataEntryPage() {
           <NumField label="Olumsuz ort. puan" min={0} max={5} step={0.1} value={metrics.negative_avg_rating} onChange={(v) => updMetric("negative_avg_rating", v)} />
         </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-2 text-xs">
-          <JsonField label="Platform olumsuz yorum dağılımı" placeholder='[{"platform_id":1,"percent":42.9}]' rows={3} value={metrics.platform_negative_distribution_json} onChange={(v) => updMetric("platform_negative_distribution_json", v)} />
+          <PlatformDistributionField
+            value={metrics.platform_negative_distribution_json}
+            onChange={(v) => updMetric("platform_negative_distribution_json", v)}
+            platforms={platforms}
+          />
           <JsonField label="Puan dağılımı" placeholder='[{"stars":5,"percent":25,"count":500}]' rows={3} value={metrics.rating_distribution_json} onChange={(v) => updMetric("rating_distribution_json", v)} />
           <JsonField label="Şikayet kelime bulutu" placeholder='[{"text":"Soğuk","weight":5}]' rows={3} value={metrics.negative_word_cloud_json} onChange={(v) => updMetric("negative_word_cloud_json", v)} />
         </div>
@@ -611,5 +647,111 @@ function JsonField({ label, value, onChange, placeholder, rows = 3 }) {
         onChange={(e) => onChange(e.target.value)}
       />
     </label>
+  );
+}
+
+function PlatformDistributionField({ value, onChange, platforms }) {
+  const rows = useMemo(() => {
+    try {
+      const parsed = JSON.parse(value || "[]");
+      return Array.isArray(parsed) ? parsed : [];
+    } catch {
+      return [];
+    }
+  }, [value]);
+
+  const [selectedPlatform, setSelectedPlatform] = useState("");
+  const [percent, setPercent] = useState("");
+
+  const usedIds = new Set(rows.map((r) => Number(r.platform_id)));
+  const availablePlatforms = platforms.filter((p) => !usedIds.has(p.id));
+
+  const writeBack = (next) => onChange(JSON.stringify(next));
+
+  const addRow = () => {
+    if (!selectedPlatform) return;
+    writeBack([...rows, { platform_id: Number(selectedPlatform), percent: Number(percent) || 0 }]);
+    setSelectedPlatform("");
+    setPercent("");
+  };
+
+  const updatePercent = (idx, val) =>
+    writeBack(rows.map((r, i) => (i === idx ? { ...r, percent: Number(val) || 0 } : r)));
+
+  const removeRow = (idx) => writeBack(rows.filter((_, i) => i !== idx));
+
+  return (
+    <div className="flex flex-col gap-1">
+      <span className="text-xs opacity-70">Platform olumsuz yorum dağılımı</span>
+
+      <div className="space-y-1 mb-1">
+        {rows.length === 0 && (
+          <p className="text-[10px] opacity-50 italic">Henüz platform eklenmedi</p>
+        )}
+        {rows.map((r, idx) => {
+          const platform = platforms.find((p) => p.id === Number(r.platform_id));
+          return (
+            <div key={idx} className="flex items-center gap-1 bg-base-200 rounded px-2 py-1">
+              <span className="text-xs flex-1 truncate">
+                {platform?.name || `ID:${r.platform_id}`}
+              </span>
+              <input
+                type="number"
+                className="input input-bordered input-xs w-16"
+                value={r.percent}
+                step="0.1"
+                min={0}
+                max={100}
+                onChange={(e) => updatePercent(idx, e.target.value)}
+              />
+              <span className="text-xs opacity-50">%</span>
+              <button
+                type="button"
+                className="btn btn-ghost btn-xs text-error"
+                onClick={() => removeRow(idx)}
+                title="Sil"
+              >
+                ✕
+              </button>
+            </div>
+          );
+        })}
+      </div>
+
+      {availablePlatforms.length > 0 ? (
+        <div className="flex gap-1 items-center">
+          <select
+            className="select select-bordered select-xs flex-1"
+            value={selectedPlatform}
+            onChange={(e) => setSelectedPlatform(e.target.value)}
+          >
+            <option value="">Platform seç…</option>
+            {availablePlatforms.map((p) => (
+              <option key={p.id} value={p.id}>{p.name}</option>
+            ))}
+          </select>
+          <input
+            type="number"
+            className="input input-bordered input-xs w-16"
+            placeholder="%"
+            value={percent}
+            step="0.1"
+            min={0}
+            max={100}
+            onChange={(e) => setPercent(e.target.value)}
+          />
+          <button
+            type="button"
+            className="btn btn-primary btn-xs"
+            onClick={addRow}
+            disabled={!selectedPlatform}
+          >
+            Ekle
+          </button>
+        </div>
+      ) : (
+        <p className="text-[10px] opacity-50 italic">Tüm platformlar eklendi</p>
+      )}
+    </div>
   );
 }

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { metricsApi } from "../api/analytics";
+import { metricsApi, dataEntryApi } from "../api/analytics";
 import { districtsApi } from "../api/districts";
 import { categoriesApi } from "../api/categories";
 import { platformsApi } from "../api/platforms";
@@ -266,15 +266,15 @@ function CourierSideEditor({ title, accent, value, onChange }) {
       <h5 className={`text-sm font-extrabold uppercase mb-3 ${text}`}>{title}</h5>
       <div className="grid grid-cols-2 gap-2">
         <div className="form-control">
-          <label className="label label-text-sm">Kurye Ücreti (₺)</label>
+          <label className="label label-text-sm">Kurye Ücreti</label>
           <input type="number" step="0.01" className="input input-bordered input-sm" value={v.fee ?? 0} onChange={(e) => update("fee", e.target.value)} />
         </div>
         <div className="form-control">
-          <label className="label label-text-sm">Ort. Maliyet (₺)</label>
+          <label className="label label-text-sm">Ort. Maliyet</label>
           <input type="number" step="0.01" className="input input-bordered input-sm" value={v.avg_cost ?? 0} onChange={(e) => update("avg_cost", e.target.value)} />
         </div>
         <div className="form-control">
-          <label className="label label-text-sm">Aylık Ciro (₺)</label>
+          <label className="label label-text-sm">Aylık Ciro</label>
           <input type="number" step="0.01" className="input input-bordered input-sm" value={v.monthly_revenue ?? 0} onChange={(e) => update("monthly_revenue", e.target.value)} />
         </div>
         <div className="form-control">
@@ -431,10 +431,10 @@ export default function MetricsPage() {
           <div className="flex justify-between items-center mb-3">
             <h3 className="font-semibold">Hedef seçimi</h3>
             <div className="flex gap-2">
-              <CsvImportButton onImport={scope === "district" ? metricsApi.district.importCsv : metricsApi.neighborhood.importCsv} />
+              <CsvImportButton onImport={(file) => dataEntryApi.importCsv(scope, file)} />
               <CsvExportButton
-                onExport={scope === "district" ? metricsApi.district.exportCsv : metricsApi.neighborhood.exportCsv}
-                filename={`${scope}_metrics.csv`}
+                onExport={() => dataEntryApi.exportCsv(scope, districtId || undefined)}
+                filename={`data_entry_${scope}.csv`}
               />
             </div>
           </div>
@@ -504,10 +504,10 @@ export default function MetricsPage() {
           <div className="card-body">
             <h4 className="font-semibold mb-2">Kıyaslama Metrikleri</h4>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-              <NumberField label="Ortalama Sepet" value={m.avg_basket} onChange={(v) => setM({ avg_basket: v })} suffix="₺" />
-              <NumberField label="Ortalama Menü Fiyatı" value={m.avg_menu_price} onChange={(v) => setM({ avg_menu_price: v })} suffix="₺" />
-              <NumberField label="Ortalama Aylık Ciro" value={m.avg_monthly_revenue} onChange={(v) => setM({ avg_monthly_revenue: v })} suffix="₺" />
-              <NumberField label="Kurye Ücreti" value={m.courier_fee} onChange={(v) => setM({ courier_fee: v })} suffix="₺" />
+              <NumberField label="Ortalama Sepet" value={m.avg_basket} onChange={(v) => setM({ avg_basket: v })} />
+              <NumberField label="Ortalama Menü Fiyatı" value={m.avg_menu_price} onChange={(v) => setM({ avg_menu_price: v })} />
+              <NumberField label="Ortalama Aylık Ciro" value={m.avg_monthly_revenue} onChange={(v) => setM({ avg_monthly_revenue: v })} />
+              <NumberField label="Kurye Ücreti" value={m.courier_fee} onChange={(v) => setM({ courier_fee: v })} />
             </div>
           </div>
         </div>
