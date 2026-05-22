@@ -38,6 +38,3 @@ venv/
 
 # Local DB backups (Postgres'e geçildi, SQLite snapshot'lar lokal kalır)
 *.db.backup-*
-
-# Müdür sunum paketi (yerel; repo'ya gitmez)
-sunum/
