@@ -110,12 +110,3 @@ Sistem size şu bilgileri verir:
 ## 6. Görseller hakkında
 
 CSV dosyalarında **görsel veya URL yoktur**. Restoran/kampanya görsellerini admin panelinden, her kayıt için tek tek yüklersiniz. CSV sadece veri içindir.
-
----
-
-## 7. Yardım
-
-Herhangi bir hata mesajı aldığınızda veya bir sütunun ne anlama geldiğinden emin olmadığınızda lütfen ekran görüntüsüyle birlikte bana iletin — aynı gün dönüş yapıyorum.
-
-Kolay gelsin,
-**Opencard ekibi**
